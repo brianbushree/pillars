@@ -1,22 +1,15 @@
 {
-  "name": "electron-quick-start",
+  "name": "pillars",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "App used to visualize call hierarchy structure of java projects, built on Electron.",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/electron/electron-quick-start",
-  "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
-  ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "repository": "https://github.com/brianbushree/pillars",
   "devDependencies": {
     "electron": "~1.6.2"
+  },
+  "dependencies": {
   }
 }
