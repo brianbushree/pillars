@@ -1,13 +1,15 @@
 const electron = require('electron')
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
-const dialog = electron.dialog
+
 
 const path = require('path')
 const url = require('url')
 
 const exec = require('child_process').exec
 const fs = require('fs')
+
+const projectMaker = require('./ProjectMaker.js')
 
 let mainWindow
 
@@ -30,36 +32,7 @@ function createWindow() {
     mainWindow = null
   })
 
-  loadProject()
-}
-
-function loadProject() {
-  openDirectory()
-}
-
-function openDirectory() {
-
-  let dir = dialog.showOpenDialog({
-      properties: [ 'openDirectory' ] })
-
-  if (dir.length > 0) {
-    dir.forEach(function(d) {
-      fs.readdir(d, (err, files) => {
-        files.forEach(file => {
-          if (file.split('.').pop() == 'class') {
-            let f = (d + '/' + file).replace(/ /g, '\\ ')
-            exec('javap -p ' + f,
-              function (error, stdout, stderr){
-                console.log('Output -> ' + stdout);
-                if(error !== null){
-                  console.log("Error -> "+error);
-                }
-            })
-          }
-        })
-      })
-    })
-  }
+  projectMaker.loadProject()
 }
 
 app.on('ready', createWindow)
