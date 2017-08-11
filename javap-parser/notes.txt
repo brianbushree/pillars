@@ -1,0 +1,24 @@
+Classes:
+
+	public class **Class** {
+		...
+	}
+	
+	Nested classes:
+
+		Nested classes will not show up on javap under their parent class.
+
+			Instead, manually find the name of the nested class and run 'javap **ParentClass**.**ChildClass**'
+
+Methods:
+	
+	no args:
+		public/private ?static? **return type/void** **method name**();
+
+	with args:
+		public/private ?static? **return type/void** **method name**(int, java.lang.String, ...);
+
+
+Instance variables:
+
+	public/private ?static? **type** **name**;

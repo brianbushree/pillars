@@ -27,4 +27,4 @@ Desktop app allowing users to visualize class structure and call hierarchy of Ja
 |    2 |  2-4  | For each Class object, for each method, run call-hierarchy-printer and parse/store each method's callees.    |
 |    3 |  2-5  | Using the Class objects, convert to usable hierarchy dataset and create an interactive D3 visualization.     |
 |    4 |  2-4  | Integrate everything above with a simple, error handling GUI.                                                |
-|    5 |  1-2  | Add finishing touches on functionality and clean up GUI aesthetics/layout.                                          |
+|    5 |  1-2  | Add finishing touches on functionality and clean up GUI aesthetics.                                          |
