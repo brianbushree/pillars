@@ -1,24 +1,64 @@
-Classes:
+JAVAP-PARSER
 
-	public class **Class** {
-		...
-	}
-	
-	Nested classes:
+Objective: Find all classes/methods associated with a given directory/Java Project
 
-		Nested classes will not show up on javap under their parent class.
+Purpose: To run the call-heirarchy of each method in the project, you must first know
+          the names of each method.
+______________________________________________________________________________________
 
-			Instead, manually find the name of the nested class and run 'javap **ParentClass**.**ChildClass**'
+Input: A directory, which should contain (or recursively contain) '.class' file(s).
 
-Methods:
-	
-	no args:
-		public/private ?static? **return type/void** **method name**();
+______________________________________________________________________________________
+______________________________________________________________________________________
 
-	with args:
-		public/private ?static? **return type/void** **method name**(int, java.lang.String, ...);
+Output:
+    JSON representation:
+
+        Array of 'Class' objects
+
+        [
+            {
+                'class_name' : 'TestClass'
+                'methods' :
+                [
+                    'name' : 'testMethod',
+                    'static' : false/true,
+                    'final' : false/true,
+                    'arg_types': ['int', 'String', ... ]
+
+                ],
+
+            }
+        ]
+
+______________________________________________________________________________________
+
+Javap Output:   
+
+    Classes:
+
+        public class **Class** {
+            ...
+        }
+        
+        *** Nested/Anonymous classes compiling note: ***
+
+            Nested (named) classes should compile as: 'OuterClass$InnerClass.class'
+
+            Anonymous classes will compile as: 'OuterClass$%%%.class' where %%% is a positive integer
 
 
-Instance variables:
+    Methods:
 
-	public/private ?static? **type** **name**;
+        public/private ?static/final? **return-type/void** **method name**(?int, java.lang.String, ...?);
+
+
+    Instance variables:
+
+        public/private ?static/final? **type** **name**;
+
+______________________________________________________________________________________
+
+Progress:
+    
+    
