@@ -14,7 +14,7 @@ ________________________________________________________________________________
 Output:
     JSON representation:
 
-        Array of 'Class' objects
+        Array of 'Class' objects holding methods, holding calless. 
 
         [
             {
@@ -24,10 +24,10 @@ Output:
                     'name' : 'testMethod',
                     'static' : false/true,
                     'final' : false/true,
-                    'arg_types': ['int', 'String', ... ]
-
+                    'arg_types': ['int', 'String', ... ],
+                    'callees': [ 'TestClass.run', 'TestClass2.test', ... ]
                 ],
-
+                ...
             }
         ]
 
