@@ -47,6 +47,8 @@ Javap Output:
 
             Anonymous classes will compile as: 'OuterClass$%%%.class' where %%% is a positive integer
 
+            When processing each class in the selected directory, if a '$' character is present, it must be an inner class.
+
 
     Methods:
 
