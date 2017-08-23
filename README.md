@@ -14,4 +14,4 @@ Desktop app allowing users to visualize class structure and call hierarchy of Ja
 * Student wants see how their Java Classes interact to better understand OOP.
 * In a large Java project settings, allow developers to more easily track down bugs and understand how a project is structured.
 
-## [Project Wiki](wiki/pillars)
+## [Project Wiki](https://github.com/brianbushree/pillars/wiki/pillars)
