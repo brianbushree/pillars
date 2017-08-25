@@ -34,6 +34,12 @@ function makeClass(file) {
 
 
   /* extract/create each method
+
+    ** regex extract for methods (no args yet...) ** :
+
+    /(?:^\s*)((?:public|private)\s)?(abstract\s)?(static\s)?(final\s)?(native\s)?(strictfp\s)?(synchronized\s)?(\w+(?:\[\])?\s)?(\w+)\(.*\).*;$/gm
+      
+
       
     c.class_name = "Class"
     c.methods = []
