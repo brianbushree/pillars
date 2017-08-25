@@ -19,7 +19,7 @@ function parse(dir) {
         }
 
       })
-      console.log(classes)
+      // console.log(classes)
     })
   })
 
@@ -29,37 +29,34 @@ module.exports.parse = parse
 
 function makeClass(file) {
 
-  let c = undefined
+  const classNameRegex = /^Compiled from \"(.*)\"$/gm
+  const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\w+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm
+
+  let c = {}
+
   let stdout = execSync('javap -p ' + file).toString()
 
+  c.name = classNameRegex.exec(stdout)[1]
+  c.methods = []
 
-  /* extract/create each method
+  let m = undefined
+  while ( ( m = methodRegex.exec(stdout)) !== null ) {
+    let method = {}
 
-    ** regex extract for methods (no args yet...) ** :
+    method.visibility = m[1]
+    method.abstract = m[2] ? true : false
+    method.static = m[3] ? true : false
+    method.final = m[4] ? true : false
+    method.native = m[5] ? true : false
+    method.strictfp = m[6] ? true : false
+    method.synchronized = m[7] ? true : false
+    method.returnType = m[8]
+    method.name = m[9]
+    method.args = m[10] ? m[10].split(/, /g) : []
+    method.callees = []
 
-    /(?:^\s*)((?:public|private)\s)?(abstract\s)?(static\s)?(final\s)?(native\s)?(strictfp\s)?(synchronized\s)?(\w+(?:\[\])?\s)?(\w+)\(.*\).*;$/gm
-      
-
-      
-    c.class_name = "Class"
-    c.methods = []
-
-    let method = 
-      {
-        'name' : 'testMethod',
-        'static' : false/true,
-        'final' : false/true,
-        'arg_types': ['int', 'String', ... ],
-        'callees': [ 'TestClass.run', 'TestClass2.test', ... ]
-      }
-    
-    // Add to class
     c.methods.push(method)
-  */
+  }
 
-  c = { 'test': stdout }
-
-
-  /* return our JSON Class object */
   return c
 }
