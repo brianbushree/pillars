@@ -1,26 +1,34 @@
-const electron = require('electron')
-const dialog = electron.dialog
+const electron = require('electron');
+const dialog = electron.dialog;
 
-const fs = require('fs')
-const path = require('path')
-const url = require('url')
-const exec = require('child_process').exec
+const fs = require('fs');
+const path = require('path');
+const url = require('url');
+const exec = require('child_process').exec;
 
-const javapParser = require('./javap-parser/Javap-Parser.js')
+const javapParser = require('./javap-parser/Javap-Parser.js');
 
 function loadProject() {
-  printMethods()
+  let classes = getClasses(function(classes){
+    console.log(JSON.stringify(classes, null, 2));
+    let names = [];
+    classes.forEach(function(e,i) {
+      names.push(classes[i].name);
+    });
+    console.log(names);
+    console.log("Found  " + classes.length + " classes\n");
+  });
 }
 
-function printMethods() {
+function getClasses(callback) {
 
   /* ask user for directory */
-  let dir = dialog.showOpenDialog({
-      properties: [ 'openDirectory' ] })
+  let dirs = dialog.showOpenDialog({
+      properties: [ 'openDirectory' ] });
 
-  if (dir.length > 0) {
-    javapParser.parse(dir)
-  }
+  javapParser.parseAsync(dirs[0], function(err, res) {
+    callback(res);
+  });
 }
 
 module.exports.loadProject = loadProject
