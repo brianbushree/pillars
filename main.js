@@ -33,6 +33,8 @@ function createWindow() {
     mainWindow = null
   });
 
+  /* eventually trigger onClick() 
+      and add to renderer.js     */ 
   projectMaker.loadProject();
 }
 

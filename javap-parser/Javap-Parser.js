@@ -12,7 +12,6 @@ function parseAsync(dir, callback) {
     if (err) return callback(err);
 
     let pending = files.length;
-
     if (!pending) return callback(null, classes);
 
     files.forEach(function(file) {
@@ -26,7 +25,7 @@ function parseAsync(dir, callback) {
         });
       }
       else {
-        if (f.split('.').pop().toLowerCase() === 'class') {
+        if (path.extname(f).toLowerCase() === '.class') {
           classes.push(makeClass(f));
         }
         if (!--pending) callback(null, classes);
@@ -42,14 +41,14 @@ module.exports.parseAsync = parseAsync;
 
 function makeClass(file) {
 
-  const classNameRegex = /^Compiled from \"(.*)\"$/gm;
+  const fileRegex = /^Compiled from \"(.*)\"$/gm;
   const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\w+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
-
-  let c = {};
 
   let stdout = execSync('javap -p ' + file).toString();
 
-  c.name = classNameRegex.exec(stdout)[1];
+  let c = {};
+  c.name = path.basename(file).split('.')[0]
+  c.file = fileRegex.exec(stdout)[1];
   c.methods = [];
 
   let m = undefined;
