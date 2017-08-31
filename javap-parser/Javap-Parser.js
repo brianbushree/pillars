@@ -1,14 +1,26 @@
+/**
+*  Javap-Parser.js
+*     
+*     parse a directory of '.class' files
+*       using 'javap' into JSON format
+*
+*/
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
 const execSync = require('child_process').execSync;
 
+/**
+ * Parse a directory of '.class' files
+ *  into JSON format from 'javap' output.
+ *
+ *  @param {String} directory 
+ *  @param {function} callback
+ */
 function parseAsync(dir, callback) {
 
   let classes = []
 
   fs.readdir(dir, (err, files) => {
-
     if (err) return callback(err);
 
     let pending = files.length;
@@ -36,9 +48,14 @@ function parseAsync(dir, callback) {
   })
 
 }
-
 module.exports.parseAsync = parseAsync;
 
+/**
+ * Make class objects from a '.class' file.
+ *
+ *  @param {String} directory 
+ *  @return {Object} class object
+ */
 function makeClass(file) {
 
   const fileRegex = /^Compiled from \"(.*)\"$/gm;
