@@ -65,6 +65,7 @@ module.exports.parseAsync = parseAsync;
 function makeClass(file) {
 
   const fileRegex = /^Compiled from \"(.*)\"$/gm;
+  //const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?class\s(\w+)\s{$/gm
   const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\w+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
 
   let stdout = execSync('javap -p "' + file + '"').toString();
