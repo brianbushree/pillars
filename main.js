@@ -44,7 +44,9 @@ function createWindow() {
   projectMaker.loadProject();
 }
 
-// init
+/**
+ * init
+ */
 app.on('ready', createWindow);
 app.on('activate', function () {
   if (mainWindow === null) {
@@ -52,7 +54,9 @@ app.on('activate', function () {
   }
 });
 
-// close/quit
+/**
+ * close/quit
+ */
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
     app.quit();

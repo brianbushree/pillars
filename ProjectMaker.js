@@ -1,25 +1,46 @@
+/**
+ *  ProjectMaker.js
+ *
+ *     make/load projects to visualize
+ */
 const electron = require('electron');
 const dialog = electron.dialog;
-
 const fs = require('fs');
-const path = require('path');
-const url = require('url');
-const exec = require('child_process').exec;
-
 const javapParser = require('./javap-parser/Javap-Parser.js');
 
+/**
+ *  Load a project into application
+ *
+ */
 function loadProject() {
-  let classes = getClasses(function(classes){
-    console.log(JSON.stringify(classes, null, 2));
+  getClasses(function(classes){
+    //console.log(JSON.stringify(classes, null, 2));
     let names = [];
+    let subnames = [];
     classes.forEach(function(e,i) {
       names.push(classes[i].name);
+      if (e.subclasses.length > 0) {
+        e.subclasses.forEach(function(d,j) {
+          subnames.push(d.name);
+        });
+      }
     });
+    console.log(JSON.stringify(classes, null, 2));
     console.log(names);
-    console.log("Found  " + classes.length + " classes\n");
+    console.log("Found  " + names.length + " classes\n");
+    console.log(subnames);
+    console.log("Found  " + subnames.length + " subclasses\n");
+    console.log("Total:  " + (names.length + subnames.length) + "\n");
   });
 }
+module.exports.loadProject = loadProject
 
+/**
+ *  Ask user for a directory and parse
+ *   'javap' output
+ *
+ *  @param callback
+ */
 function getClasses(callback) {
 
   /* ask user for directory */
@@ -30,5 +51,3 @@ function getClasses(callback) {
     callback(res);
   });
 }
-
-module.exports.loadProject = loadProject
