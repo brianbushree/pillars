@@ -14,14 +14,13 @@ const javapParser = require('./javap-parser/Javap-Parser.js');
  */
 function loadProject() {
   getClasses(function(classes){
-    //console.log(JSON.stringify(classes, null, 2));
     let names = [];
     let subnames = [];
     classes.forEach(function(e,i) {
-      names.push(classes[i].name);
+      names.push(classes[i].filebase);
       if (e.subclasses.length > 0) {
         e.subclasses.forEach(function(d,j) {
-          subnames.push(d.name);
+          subnames.push(d.filebase);
         });
       }
     });

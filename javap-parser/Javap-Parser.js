@@ -65,16 +65,29 @@ module.exports.parseAsync = parseAsync;
 function makeClass(file) {
 
   const fileRegex = /^Compiled from \"(.*)\"$/gm;
-  //const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?class\s(\w+)\s{$/gm
+  const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(\w+)\s(?:extends\s(.+)\s)?(?:implements\s(.+)\s)?{$/gm
   const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\w+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
 
   let stdout = execSync('javap -p "' + file + '"').toString();
 
   let c = {};
-  c.name = path.basename(file).split('.')[0]
-  c.file = fileRegex.exec(stdout)[1];
+  c.file = file;
+  c.filebase = path.basename(file); 
+  c.attributes = {};
+  c.src = fileRegex.exec(stdout)[1];
   c.methods = [];
   c.subclasses = [];
+
+  let classAttrs = classRegex.exec(stdout);  
+  c.attributes.visibility = classAttrs[1];
+  c.attributes.abstract = classAttrs[2] ? true : false;
+  c.attributes.final = classAttrs[3] ? true : false;
+  c.attributes.strictfp = classAttrs[4] ? true : false;
+  c.attributes.interface = classAttrs[5] == 'interface' ? true : false; 
+  c.name = classAttrs[6];
+  c.attributes.extends = classAttrs[7];
+  c.attributes.implements = classAttrs[8];
+
 
   let m = undefined;
   while ( ( m = methodRegex.exec(stdout)) !== null ) {
@@ -112,11 +125,11 @@ function compressSubclasses(classes) {
 
   // copy subclasses into class
   classes.forEach(function(e,i) {
-    if (!path.basename(e.name).includes('$')) {
+    if (!e.filebase.includes('$')) {
       classes.forEach(function(d,j) {
         if (i == j) return;
 
-        if (d.name.includes(e.name + '$')) {
+        if (d.filebase.includes(e.filebase.substring(0, e.filebase.lastIndexOf(".")) + '$')) {
           e.subclasses.push(d);
         }
       });

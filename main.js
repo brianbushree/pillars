@@ -17,7 +17,6 @@ let mainWindow;
 
 /**
  *  Create initial Electron window.
- *
  */
 function createWindow() {
 
