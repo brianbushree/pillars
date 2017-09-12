@@ -7,6 +7,7 @@ const electron = require('electron');
 const dialog = electron.dialog;
 const fs = require('fs');
 const javapParser = require('./javap-parser/Javap-Parser.js');
+const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 
 /**
  *  Load a project into application
@@ -14,22 +15,7 @@ const javapParser = require('./javap-parser/Javap-Parser.js');
  */
 function loadProject() {
   getClasses(function(classes){
-    let names = [];
-    let subnames = [];
-    classes.forEach(function(e,i) {
-      names.push(classes[i].filebase);
-      if (e.subclasses.length > 0) {
-        e.subclasses.forEach(function(d,j) {
-          subnames.push(d.filebase);
-        });
-      }
-    });
-    console.log(JSON.stringify(classes, null, 2));
-    console.log(names);
-    console.log("Found  " + names.length + " classes\n");
-    console.log(subnames);
-    console.log("Found  " + subnames.length + " subclasses\n");
-    console.log("Total:  " + (names.length + subnames.length) + "\n");
+    printClasses(classes);
   });
 }
 module.exports.loadProject = loadProject
@@ -49,4 +35,44 @@ function getClasses(callback) {
   javapParser.parseAsync(dirs[0], function(err, res) {
     callback(res);
   });
+
 }
+
+/**
+ *  Print all classes/subclasses and totals.
+ *
+*/
+function printClasses(classes) {
+
+  let names = [];
+  let subnames = [];
+
+  classes.forEach(function(e,i) {
+    names.push(classes[i].filebase);
+    if (e.subclasses.length > 0) {
+      e.subclasses.forEach(function(d,j) {
+        subnames.push(d.filebase);
+      });
+    }
+  });
+
+  console.log(JSON.stringify(classes, null, 2));
+  console.log(names);
+  console.log("Found  " + names.length + " classes\n");
+  console.log(subnames);
+  console.log("Found  " + subnames.length + " subclasses\n");
+  console.log("Total:  " + (names.length + subnames.length) + "\n");
+
+}
+
+/**
+ *
+ * Run the HierarchyParser on each method,
+ *
+ */
+ function runHierarchyParser(classes) {
+
+    // loop through each method in each class
+    //
+
+ }
