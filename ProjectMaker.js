@@ -16,6 +16,7 @@ const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 function loadProject() {
   getClasses(function(classes){
     printClasses(classes);
+    hierarchyParser.runHierarchyParser(classes);
   });
 }
 module.exports.loadProject = loadProject
@@ -40,7 +41,8 @@ function getClasses(callback) {
 
 /**
  *  Print all classes/subclasses and totals.
- *
+ *  
+ *  @param array of classes 
 */
 function printClasses(classes) {
 

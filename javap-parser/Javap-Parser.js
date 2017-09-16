@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const execSync = require('child_process').execSync;
+const async = require('async');
 
 /**
  * Parse a directory of '.class' files
@@ -26,7 +27,7 @@ function parseAsync(dir, callback) {
     let pending = files.length;
     if (!pending) return callback(null, classes);
 
-    files.forEach(function(file) {
+    async.each(files, function(file, cb) {
 
       let f = path.join(dir, file);
 
@@ -65,28 +66,37 @@ module.exports.parseAsync = parseAsync;
 function makeClass(file) {
 
   const fileRegex = /^Compiled from \"(.*)\"$/gm;
-  const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(\w+)\s(?:extends\s(.+)\s)?(?:implements\s(.+)\s)?{$/gm
+  const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(.+)\s(?:extends\s(.+)\s)?(?:implements\s(.+)\s)?{$/gm;
   const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\w+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
 
   let stdout = execSync('javap -p "' + file + '"').toString();
 
   let c = {};
+
   c.file = file;
   c.filebase = path.basename(file); 
-  c.attributes = {};
   c.src = fileRegex.exec(stdout)[1];
+  c.name = "";
+  c.package = "";
+
+  c.attributes = {};
   c.methods = [];
   c.subclasses = [];
 
-  let classAttrs = classRegex.exec(stdout);  
+  let classAttrs = classRegex.exec(stdout); 
+  if (classAttrs == null) {
+    console.log(file);
+  }
   c.attributes.visibility = classAttrs[1];
   c.attributes.abstract = classAttrs[2] ? true : false;
   c.attributes.final = classAttrs[3] ? true : false;
   c.attributes.strictfp = classAttrs[4] ? true : false;
   c.attributes.interface = classAttrs[5] == 'interface' ? true : false; 
-  c.name = classAttrs[6];
   c.attributes.extends = classAttrs[7];
   c.attributes.implements = classAttrs[8];
+  c.name = classAttrs[6];
+  c.package = c.name.substring(0, c.name.lastIndexOf('.'));
+
 
 
   let m = undefined;
