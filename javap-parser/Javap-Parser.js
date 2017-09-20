@@ -21,7 +21,7 @@ function parseAsync(dir, callback) {
 
   let classes = []
 
-  fs.readdir(dir, (err, files) => {
+  fs.readdir(dir, function(err, files) {
     if (err) return callback(err);
 
     let pending = files.length;

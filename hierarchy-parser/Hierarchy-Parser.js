@@ -5,12 +5,16 @@
  *      into each method's callees
  */
 const execSync = require('child_process').execSync;
+const electron = require('electron');
+const dialog = electron.dialog;
 const async = require('async');
 const {app} = require('electron');
+const appPath = app.getAppPath();
+const fs = require('fs');
+const path = require('path');
 
 function runHierarchyParser(classes) {
 
-	const appPath = app.getAppPath();
 	const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
 
 	let methodName;
@@ -22,19 +26,26 @@ function runHierarchyParser(classes) {
 
 	// async.each(classes, function(c, callback) {
 		methodName = 'test.ArrayOperations.main';
-		let stdout = execSync('java -jar "' + chpJar + '" -m ' + methodName + ' -s "' + srcDir + '" -c "' + classpath + '"').toString();
+		let execStr = 'java -jar "' + chpJar + '" -m ' + methodName + ' -s "' + srcDir + '" -c "' + classpath + '"';
+		let stdout = execSync(execStr).toString();
 		console.log(stdout);
+		console.log(execStr);
 	// });
 
 }
 module.exports.runHierarchyParser = runHierarchyParser;
 
 function getSrcDir() {
-	/* ask user for directory */
-	// let dirs = dialog.showOpenDialog({
-	//   properties: [ 'openDirectory' ] });
 
-	return '/Users/brianbush/Desktop/lab3\\ test';
+	let paths = dialog.showOpenDialog({
+	  properties: [ 'openDirectory', 'multiSelections' ] });
+	let dirs = "";
+
+	paths.forEach(function(e,i) {
+		dirs += e.replace(/ /g, "\\ ") + ((i != paths.length - 1) ? " " : "");
+	});
+
+	return dirs;
 }
 
 /*
@@ -45,7 +56,52 @@ function getSrcDir() {
 */ 
 function getClasspath() {
 
-	/* ask user for classpath OR default */
+	let cp = "";
 
-	return '/Users/brianbush/Desktop/test path';
+	let paths = dialog.showOpenDialog({
+	  properties: [ 'openDirectory', 'openFile', 'multiSelections' ] });
+
+	paths.forEach(function(e,i) {
+		let f = e;
+		if (fs.lstatSync(f).isDirectory()) {
+
+			cp += copyDir(f, f);
+
+		} else {
+
+			cp += f + ":";
+		}
+	});
+
+	return cp;
+
+}
+
+function copyDir(base, dir) {
+
+	let cp = "";
+	let newDir = appPath + '/stor/' + dir.substring(base.lastIndexOf('/') + 1, dir.length);
+
+	if (!fs.existsSync(newDir)) {
+		fs.mkdirSync(newDir);		
+	}
+
+	cp += newDir + ':';
+
+	let files = fs.readdirSync(dir);
+	// fs.readdir(dir, function(err, files) {
+		files.forEach(function(e, i) {
+
+			let f = path.join(dir, e);
+
+			if (fs.lstatSync(f).isDirectory()) {
+				cp += copyDir(base, f);
+			} else if (path.extname(f).toLowerCase() === '.class') {
+				fs.createReadStream(f).pipe(fs.createWriteStream(newDir + '/' + path.basename(f)));
+			}
+
+		});
+	// });
+
+	return cp;
 }
