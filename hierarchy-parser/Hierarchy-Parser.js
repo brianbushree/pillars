@@ -24,13 +24,15 @@ function runHierarchyParser(classes) {
 	srcDir = getSrcDir();
 	classpath = getClasspath();
 
-	// async.each(classes, function(c, callback) {
-		methodName = 'test.ArrayOperations.main';
-		let execStr = 'java -jar "' + chpJar + '" -m ' + methodName + ' -s "' + srcDir + '" -c "' + classpath + '"';
-		let stdout = execSync(execStr).toString();
-		console.log(stdout);
-		console.log(execStr);
-	// });
+	async.eachSeries(classes, function(c, callback) {
+		async.eachSeries(c.methods, function(m, cb) {
+			methodName = m.name;
+			let execStr = 'java -jar "' + chpJar + '" -m ' + methodName + ' -s "' + srcDir + '" -c "' + classpath + '"';
+			let stdout = execSync(execStr).toString();
+			console.log(stdout);
+			console.log(execStr);
+		});
+	});
 
 }
 module.exports.runHierarchyParser = runHierarchyParser;
@@ -51,8 +53,6 @@ function getSrcDir() {
 /*
 *	For every dir found in classpath, copy '.class'
 *     files into newDir and replace with new dir in classpath string
-*	
-*	WHY? CHP classpath dirs must only contain .class files
 */ 
 function getClasspath() {
 
