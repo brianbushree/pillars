@@ -17,25 +17,47 @@ function runHierarchyParser(classes) {
 
 	const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
 
-	let methodName;
 	let srcDir;
 	let classpath;
+	let callees;
 
 	srcDir = getSrcDir();
 	classpath = getClasspath();
 
+	let newClasses = [];
+
 	async.eachSeries(classes, function(c, callback) {
+		let newMethods = [];
 		async.eachSeries(c.methods, function(m, cb) {
-			methodName = m.name;
-			let execStr = 'java -jar "' + chpJar + '" -m ' + methodName + ' -s "' + srcDir + '" -c "' + classpath + '"';
+			let execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + srcDir + '" -c "' + classpath + '"';
 			let stdout = execSync(execStr).toString();
-			console.log(stdout);
+			callees = extractCallees(stdout);
+			m.callees = callees;
 			console.log(execStr);
+			newMethods.push(m);
+			cb();
 		});
+		c.methods = newMethods;
+		newClasses.push(c);
+		callback();
 	});
 
+	return newClasses;
 }
 module.exports.runHierarchyParser = runHierarchyParser;
+
+function extractCallees(stdout) {
+
+	let callees = [];
+	let calleeRegex = /^\t(?!\.)(?!java)(\S*)\(\S*\)$/gm;
+
+	let c = undefined;
+	while ( ( c = calleeRegex.exec(stdout)) !== null ) {
+		callees.push(c[1]);
+	}
+
+	return callees;
+}
 
 function getSrcDir() {
 
@@ -89,19 +111,17 @@ function copyDir(base, dir) {
 	cp += newDir + ':';
 
 	let files = fs.readdirSync(dir);
-	// fs.readdir(dir, function(err, files) {
-		files.forEach(function(e, i) {
+	files.forEach(function(e, i) {
 
-			let f = path.join(dir, e);
+		let f = path.join(dir, e);
 
-			if (fs.lstatSync(f).isDirectory()) {
-				cp += copyDir(base, f);
-			} else if (path.extname(f).toLowerCase() === '.class') {
-				fs.createReadStream(f).pipe(fs.createWriteStream(newDir + '/' + path.basename(f)));
-			}
+		if (fs.lstatSync(f).isDirectory()) {
+			cp += copyDir(base, f);
+		} else if (path.extname(f).toLowerCase() === '.class') {
+			fs.createReadStream(f).pipe(fs.createWriteStream(newDir + '/' + path.basename(f)));
+		}
 
-		});
-	// });
+	});
 
 	return cp;
 }
