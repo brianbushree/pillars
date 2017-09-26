@@ -34,6 +34,8 @@ function runHierarchyParser(classes) {
 			callees = extractCallees(stdout);
 			m.callees = callees;
 			console.log(execStr);
+			console.log(stdout);
+			console.log(callees);
 			newMethods.push(m);
 			cb();
 		});
@@ -49,10 +51,10 @@ module.exports.runHierarchyParser = runHierarchyParser;
 function extractCallees(stdout) {
 
 	let callees = [];
-	let calleeRegex = /^\t(?!\.)(?!java)(\S*)\(\S*\)$/gm;
+	let calleeRegex = /^\t((?!java)\S*)\(.*\)$/gm;
 
 	let c = undefined;
-	while ( ( c = calleeRegex.exec(stdout)) !== null ) {
+	while ( (c = calleeRegex.exec(stdout)) !== null ) {
 		callees.push(c[1]);
 	}
 
