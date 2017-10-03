@@ -31,6 +31,7 @@ function runHierarchyParser(classes) {
 		async.eachSeries(c.methods, function(m, cb) {
 			let execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + srcDir + '" -c "' + classpath + '"';
 			let stdout = execSync(execStr).toString();
+			stdout = handleFuncOverload(stdout, m);
 			callees = extractCallees(stdout);
 			m.callees = callees;
 			console.log(execStr);
@@ -59,6 +60,26 @@ function extractCallees(stdout) {
 	}
 
 	return callees;
+}
+
+function handleFuncOverload(stdout, method) {
+
+	let methodSig;
+	let methodsOutput;
+
+	methodsOutput = stdout.split("\n\n");
+
+	if (methodsOutput.length <= 2) {
+		stdout = methodsOutput[0];
+	} else {
+		methodsOutput.forEach(function(e, i) {
+			if (e.includes(method.sig + '\n')) {
+				return e;
+			}
+		});
+	}
+
+	return stdout;
 }
 
 function getSrcDir() {

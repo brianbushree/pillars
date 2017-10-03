@@ -108,6 +108,12 @@ function makeClass(file) {
     method.args = m[10] ? m[10].split(/, /g) : [];
     method.callees = [];
 
+    method.sig = c.name + '.' + method.name + ((method.args.length > 0) ? '(' : '');
+    method.args.forEach(function(arg,i) {
+      method.sig += arg + ((i < method.args.length - 1) ? ', ' : '');
+    });
+    method.sig += ((method.args.length > 0) ? ')' : '');
+
     method.attributes = {};
     method.attributes.visibility = m[1];
     method.attributes.abstract = m[2] ? true : false;
