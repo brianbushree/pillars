@@ -19,7 +19,7 @@ const async = require('async');
  */
 function parseAsync(dir, callback) {
 
-  let classes = []
+  let classes = [];
 
   fs.readdir(dir, function(err, files) {
     if (err) return callback(err);
@@ -67,7 +67,7 @@ function makeClass(file) {
 
   const fileRegex = /^Compiled from \"(.*)\"$/gm;
   const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(.+)\s(?:extends\s(.+)\s)?(?:implements\s(.+)\s)?{$/gm;
-  const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\w+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
+  const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\S+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
 
   let stdout = execSync('javap -p "' + file + '"').toString();
 
@@ -97,12 +97,11 @@ function makeClass(file) {
   c.name = classAttrs[6];
   c.package = c.name.substring(0, c.name.lastIndexOf('.'));
 
-
-
   let m = undefined;
   while ( ( m = methodRegex.exec(stdout)) !== null ) {
     let method = {};
 
+    method.sig = '';
     method.name = m[9];
     method.returnType = m[8] ? m[8] : "(constructor)";
     method.args = m[10] ? m[10].split(/, /g) : [];
@@ -139,7 +138,6 @@ function compressSubclasses(classes) {
 
   let newClasses = [];
 
-  // copy subclasses into class
   classes.forEach(function(e,i) {
     if (!e.filebase.includes('$')) {
       classes.forEach(function(d,j) {

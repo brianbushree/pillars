@@ -52,7 +52,7 @@ module.exports.runHierarchyParser = runHierarchyParser;
 function extractCallees(stdout) {
 
 	let callees = [];
-	let calleeRegex = /^\t((?!java)\S*)\(.*\)$/gm;
+	let calleeRegex = /^\t((?!java)\S*(?:\(.+\))?)$/gm;
 
 	let c = undefined;
 	while ( (c = calleeRegex.exec(stdout)) !== null ) {
@@ -74,11 +74,10 @@ function handleFuncOverload(stdout, method) {
 	} else {
 		methodsOutput.forEach(function(e, i) {
 			if (e.includes(method.sig + '\n')) {
-				return e;
+				stdout = e;
 			}
 		});
 	}
-
 	return stdout;
 }
 
@@ -97,7 +96,7 @@ function getSrcDir() {
 
 /*
 *	For every dir found in classpath, copy '.class'
-*     files into newDir and replace with new dir in classpath string
+*     files into newDir and replace with new dir in classpath
 */ 
 function getClasspath() {
 
