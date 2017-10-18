@@ -33,11 +33,12 @@ function parseAsync(dir, callback) {
 
       if (fs.lstatSync(f).isDirectory()) {
         parseAsync(f, function(err, res) {
-          classes.concat(res);
+          classes = classes.concat(res);
           if (!--pending) {
-            classes = compressSubclasses(classes)
+            classes = compressSubclasses(classes);
             callback(null, classes); 
           }
+          cb();
         });
       }
       else {
@@ -48,11 +49,12 @@ function parseAsync(dir, callback) {
           classes = compressSubclasses(classes);
           callback(null, classes); 
         }
+        cb();
       }
 
-    })
+    });
 
-  })
+  });
 
 }
 module.exports.parseAsync = parseAsync;
@@ -66,7 +68,7 @@ module.exports.parseAsync = parseAsync;
 function makeClass(file) {
 
   const fileRegex = /^Compiled from \"(.*)\"$/gm;
-  const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(\S+)\s(?:extends\s(.+)\s)?(?:implements\s(.+)\s)?{$/gm;
+  const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(\S+(?:<.*?>)?)\s(?:extends\s(\S+(?:<.*?>)?)\s)?(?:implements\s(\S+(?:<.*?>)?)\s)?{$/gm;
   const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\S+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
 
   let stdout = execSync('javap -p \'' + file + '\'').toString();

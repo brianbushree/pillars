@@ -15,6 +15,7 @@ const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
  */
 function loadProject() {
   getClasses(function(classes){
+    printClasses(classes);
     classes = hierarchyParser.runHierarchyParser(classes);
     printClasses(classes);
   });
