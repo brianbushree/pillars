@@ -1,8 +1,8 @@
 /**
  *  Hierarchy-Parser.js
  *
- *     run call-hierarchy-printer and parse input
- *      into each method's callees
+ *     run call-hierarchy-printer and parse output
+ *      into each method's callees attribute
  */
 const execSync = require('child_process').execSync;
 const electron = require('electron');
@@ -15,6 +15,13 @@ const path = require('path');
 
 const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
 
+/**
+*  Using project input, for each
+*   class, for each method run CHP.
+*  
+*  @param {Object} project 
+*  @return {String} project.data 
+*/
 function runHierarchyParser(project) {
 
   let callees;
@@ -32,7 +39,7 @@ function runHierarchyParser(project) {
       execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + project.src + '" -c "' + project.classpath + '"';
 
       stdout = execSync(execStr).toString();
-      stdout = handleFuncOverload(stdout, m);
+      stdout = handleFuncOverload(stdout, m.sig);
       callees = extractCallees(stdout);
       m.callees = callees;
 
@@ -48,6 +55,7 @@ function runHierarchyParser(project) {
     c.methods = newMethods;
     newClasses.push(c);
     callback();
+
   });
 
   return newClasses;
@@ -55,10 +63,16 @@ function runHierarchyParser(project) {
 }
 module.exports.runHierarchyParser = runHierarchyParser;
 
+/**
+*  Extract direct callees from CHP output.
+*
+*  @param {String} stdout
+*  @return {String[]} callees 
+*/
 function extractCallees(stdout) {
 
+  const calleeRegex = /^\t((?!java)\S*(?:\(.+\))?)$/gm;
   let callees = [];
-  let calleeRegex = /^\t((?!java)\S*(?:\(.+\))?)$/gm;
   let match = null;
 
   while ( (match = calleeRegex.exec(stdout)) !== null ) {
@@ -69,21 +83,29 @@ function extractCallees(stdout) {
 
 }
 
-function handleFuncOverload(stdout, method) {
+/**
+*  Handle case where method is overloaded
+*   using a method's signature.
+*
+*  @param {String} stdout
+*  @param {String} sig
+*  @return {String} method
+*/
+function handleFuncOverload(stdout, sig) {
 
-  let methodSig;
-  let methodsOutput = stdout.split("\n\n");
+  let method = stdout.split("\n\n");
 
-  if (methodsOutput.length <= 2) {
-    stdout = methodsOutput[0];
-  } else {
-    methodsOutput.forEach(function(e, i) {
-      if (e.includes(method.sig + '\n')) {
-          stdout = e;
+  if (method.length > 2) {
+    method.forEach(function(e, i) {
+      if (e.includes(sig + '\n')) {
+          method = e;
+          return;
       }
     });
+  } else {
+    method = stdout;
   }
 
-  return stdout;
+  return method;
 
 }

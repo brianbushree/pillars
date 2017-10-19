@@ -3,7 +3,6 @@
 *     
 *     parse a directory of '.class' files
 *       using 'javap' into JSON format
-*
 */
 const fs = require('fs');
 const path = require('path');
@@ -16,7 +15,7 @@ const async = require('async');
  *  into JSON format from 'javap' output.
  *
  *  @param {String} directory 
- *  @param {function} callback
+ *  @param {function} callback(err, data)
  */
 function parseAsync(dir, callback) {
 
@@ -65,7 +64,7 @@ module.exports.parseAsync = parseAsync;
 /**
  * Make class objects from a '.class' file.
  *
- *  @param {String} directory 
+ *  @param {String} file 
  *  @return {Object} class object
  */
 function makeClass(file) {
@@ -134,10 +133,10 @@ function makeClass(file) {
 }
 
 /**
- * Move subclasses into classes.
+ * Move subclasses inside classes.
  *
- *  @param {class array} classes 
- *  @return {class array} classes 
+ *  @param {class obj[]} classes 
+ *  @return {class obj[]} classes 
  */
 function compressSubclasses(classes) {
 
