@@ -13,23 +13,17 @@ const appPath = app.getAppPath();
 const fs = require('fs');
 const path = require('path');
 
-function runHierarchyParser(classes) {
+function runHierarchyParser(project) {
 
 	const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
 
-	let srcDir;
-	let classpath;
 	let callees;
-
-	srcDir = getSrcDir();
-	classpath = getClasspath();
-
 	let newClasses = [];
 
-	async.eachSeries(classes, function(c, callback) {
+	async.eachSeries(project.data, function(c, callback) {
 		let newMethods = [];
 		async.eachSeries(c.methods, function(m, cb) {
-			let execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + srcDir + '" -c "' + classpath + '"';
+			let execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + project.src + '" -c "' + project.classpath + '"';
 			let stdout = execSync(execStr).toString();
 			stdout = handleFuncOverload(stdout, m);
 			callees = extractCallees(stdout);
@@ -79,71 +73,4 @@ function handleFuncOverload(stdout, method) {
 		});
 	}
 	return stdout;
-}
-
-function getSrcDir() {
-
-	let paths = dialog.showOpenDialog({
-	  properties: [ 'openDirectory', 'multiSelections' ] });
-	let dirs = "";
-
-	paths.forEach(function(e,i) {
-		dirs += e.replace(/ /g, "\\ ") + ((i != paths.length - 1) ? " " : "");
-	});
-
-	return dirs;
-}
-
-/*
-*	For every dir found in classpath, copy '.class'
-*     files into newDir and replace with new dir in classpath
-*/ 
-function getClasspath() {
-
-	let cp = "";
-
-	let paths = dialog.showOpenDialog({
-	  properties: [ 'openDirectory', 'openFile', 'multiSelections' ] });
-
-	paths.forEach(function(e,i) {
-		let f = e;
-		if (fs.lstatSync(f).isDirectory()) {
-
-			cp += copyDir(f, f);
-
-		} else {
-
-			cp += f + ":";
-		}
-	});
-
-	return cp;
-
-}
-
-function copyDir(base, dir) {
-
-	let cp = "";
-	let newDir = appPath + '/stor/' + dir.substring(base.lastIndexOf('/') + 1, dir.length);
-
-	if (!fs.existsSync(newDir)) {
-		fs.mkdirSync(newDir);		
-	}
-
-	cp += newDir + ':';
-
-	let files = fs.readdirSync(dir);
-	files.forEach(function(e, i) {
-
-		let f = path.join(dir, e);
-
-		if (fs.lstatSync(f).isDirectory()) {
-			cp += copyDir(base, f);
-		} else if (path.extname(f).toLowerCase() === '.class') {
-			fs.createReadStream(f).pipe(fs.createWriteStream(newDir + '/' + path.basename(f)));
-		}
-
-	});
-
-	return cp;
 }

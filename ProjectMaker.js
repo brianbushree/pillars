@@ -6,6 +6,10 @@
 const electron = require('electron');
 const dialog = electron.dialog;
 const fs = require('fs');
+const path = require('path');
+const {app} = require('electron');
+const appPath = app.getAppPath();
+
 const javapParser = require('./javap-parser/Javap-Parser.js');
 const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 
@@ -14,30 +18,92 @@ const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
  *
  */
 function loadProject() {
-  getClasses(function(classes){
-    printClasses(classes);
-    classes = hierarchyParser.runHierarchyParser(classes);
-    printClasses(classes);
+  getProjectInput(function(project) {
+
+    javapParser.parseAsync(project.classes, function(err, res) {
+      project.data = res;
+      printClasses(project.data);
+      project.data = hierarchyParser.runHierarchyParser(project);
+    });
+
   });
 }
 module.exports.loadProject = loadProject
 
 /**
- *  Ask user for a directory and parse
- *   'javap' output
+ *  Ask user for a 'classes' dir,
+ *   'src' dir,
+ *   and 'classpath'.
  *
- *  @param callback
+ *  @param callback(project)
+ *    
+ *    project format:
+ *    {
+ *      'classes': CLASSES_DIR,
+ *      'src': SRC_DIR,
+ *      'classpath': CLASSPATH_STR
+ *    }
  */
-function getClasses(callback) {
+function getProjectInput(callback) {
+  let project = {};
+  let paths;
 
-  /* ask user for directory */
-  let dirs = dialog.showOpenDialog({
+  paths = dialog.showOpenDialog({
       properties: [ 'openDirectory' ] });
+  project.classes = paths[0];
 
-  javapParser.parseAsync(dirs[0], function(err, res) {
-    callback(res);
+  paths = dialog.showOpenDialog({
+      properties: [ 'openDirectory' ] });
+  project.src = '';
+  paths.forEach(function(e,i) {
+    project.src += e.replace(/ /g, "\\ ") + ((i != paths.length - 1) ? " " : "");
   });
 
+  project.classpath = '';
+  paths = dialog.showOpenDialog({
+    properties: [ 'openDirectory', 'openFile', 'multiSelections' ] });
+
+  paths.forEach(function(f,i) {
+    if (fs.lstatSync(f).isDirectory()) {
+      project.classpath += copyDir(f, f);
+    } else {
+      project.classpath += f + ":";
+    }
+  });
+
+  callback(project);
+
+}
+
+/*
+* Copy '.class' files and directory structure
+*  into local storage
+*/ 
+function copyDir(base, dir) {
+
+  let cp = "";
+  let newDir = appPath + '/stor/' + dir.substring(base.lastIndexOf('/') + 1, dir.length);
+
+  if (!fs.existsSync(newDir)) {
+    fs.mkdirSync(newDir);   
+  }
+
+  cp += newDir + ':';
+
+  let files = fs.readdirSync(dir);
+  files.forEach(function(e, i) {
+
+    let f = path.join(dir, e);
+
+    if (fs.lstatSync(f).isDirectory()) {
+      cp += copyDir(base, f);
+    } else if (path.extname(f).toLowerCase() === '.class') {
+      fs.createReadStream(f).pipe(fs.createWriteStream(newDir + '/' + path.basename(f)));
+    }
+
+  });
+
+  return cp;
 }
 
 /**
@@ -67,15 +133,3 @@ function printClasses(classes) {
   console.log("Total:  " + (names.length + subnames.length) + "\n");
 
 }
-
-/**
- *
- * Run the HierarchyParser on each method,
- *
- */
- function runHierarchyParser(classes) {
-
-    // loop through each method in each class
-    //
-
- }
