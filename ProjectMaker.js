@@ -45,6 +45,7 @@ module.exports.loadProject = loadProject
  *    }
  */
 function getProjectInput(callback) {
+
   let project = {};
   let paths;
 
@@ -82,6 +83,8 @@ function getProjectInput(callback) {
 function copyDir(base, dir) {
 
   let cp = "";
+  let files;
+  let f;
   let newDir = appPath + '/stor/' + dir.substring(base.lastIndexOf('/') + 1, dir.length);
 
   if (!fs.existsSync(newDir)) {
@@ -90,10 +93,10 @@ function copyDir(base, dir) {
 
   cp += newDir + ':';
 
-  let files = fs.readdirSync(dir);
+  files = fs.readdirSync(dir);
   files.forEach(function(e, i) {
 
-    let f = path.join(dir, e);
+    f = path.join(dir, e);
 
     if (fs.lstatSync(f).isDirectory()) {
       cp += copyDir(base, f);
@@ -104,6 +107,7 @@ function copyDir(base, dir) {
   });
 
   return cp;
+
 }
 
 /**

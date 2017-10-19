@@ -13,64 +13,77 @@ const appPath = app.getAppPath();
 const fs = require('fs');
 const path = require('path');
 
+const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
+
 function runHierarchyParser(project) {
 
-	const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
+  let callees;
+  let newClasses = [];
+  let newMethods;
+  let execStr;
+  let stdout;
 
-	let callees;
-	let newClasses = [];
+  async.eachSeries(project.data, function(c, callback) {
 
-	async.eachSeries(project.data, function(c, callback) {
-		let newMethods = [];
-		async.eachSeries(c.methods, function(m, cb) {
-			let execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + project.src + '" -c "' + project.classpath + '"';
-			let stdout = execSync(execStr).toString();
-			stdout = handleFuncOverload(stdout, m);
-			callees = extractCallees(stdout);
-			m.callees = callees;
-			console.log(execStr);
-			console.log(stdout);
-			console.log(callees);
-			newMethods.push(m);
-			cb();
-		});
-		c.methods = newMethods;
-		newClasses.push(c);
-		callback();
-	});
+    newMethods = [];
 
-	return newClasses;
+    async.eachSeries(c.methods, function(m, cb) {
+
+      execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + project.src + '" -c "' + project.classpath + '"';
+
+      stdout = execSync(execStr).toString();
+      stdout = handleFuncOverload(stdout, m);
+      callees = extractCallees(stdout);
+      m.callees = callees;
+
+      console.log(execStr);
+      console.log(stdout);
+      console.log(callees);
+
+      newMethods.push(m);
+      cb();
+
+    });
+
+    c.methods = newMethods;
+    newClasses.push(c);
+    callback();
+  });
+
+  return newClasses;
+
 }
 module.exports.runHierarchyParser = runHierarchyParser;
 
 function extractCallees(stdout) {
 
-	let callees = [];
-	let calleeRegex = /^\t((?!java)\S*(?:\(.+\))?)$/gm;
+  let callees = [];
+  let calleeRegex = /^\t((?!java)\S*(?:\(.+\))?)$/gm;
+  let match = null;
 
-	let c = undefined;
-	while ( (c = calleeRegex.exec(stdout)) !== null ) {
-		callees.push(c[1]);
-	}
+  while ( (match = calleeRegex.exec(stdout)) !== null ) {
+    callees.push(match[1]);
+  }
 
-	return callees;
+  return callees;
+
 }
 
 function handleFuncOverload(stdout, method) {
 
-	let methodSig;
-	let methodsOutput;
+  let methodSig;
+  let methodsOutput = stdout.split("\n\n");
 
-	methodsOutput = stdout.split("\n\n");
+  if (methodsOutput.length <= 2) {
+    stdout = methodsOutput[0];
+  } else {
+    methodsOutput.forEach(function(e, i) {
+      if (e.includes(method.sig + '\n')) {
+          stdout = e;
+      }
+    });
+  }
 
-	if (methodsOutput.length <= 2) {
-		stdout = methodsOutput[0];
-	} else {
-		methodsOutput.forEach(function(e, i) {
-			if (e.includes(method.sig + '\n')) {
-				stdout = e;
-			}
-		});
-	}
-	return stdout;
+  return stdout;
+
 }

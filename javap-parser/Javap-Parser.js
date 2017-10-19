@@ -10,6 +10,7 @@ const path = require('path');
 const execSync = require('child_process').execSync;
 const async = require('async');
 
+
 /**
  * Parse a directory of '.class' files
  *  into JSON format from 'javap' output.
@@ -20,16 +21,18 @@ const async = require('async');
 function parseAsync(dir, callback) {
 
   let classes = [];
+  let pending;
+  let f;
 
   fs.readdir(dir, function(err, files) {
     if (err) return callback(err);
 
-    let pending = files.length;
+    pending = files.length;
     if (!pending) return callback(null, classes);
 
     async.each(files, function(file, cb) {
 
-      let f = path.join(dir, file);
+      f = path.join(dir, file);
 
       if (fs.lstatSync(f).isDirectory()) {
         parseAsync(f, function(err, res) {
@@ -71,24 +74,26 @@ function makeClass(file) {
   const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(\S+(?:<.*?>)?)\s(?:extends\s(\S+(?:<.*?>)?)\s)?(?:implements\s(\S+(?:<.*?>)?)\s)?{$/gm;
   const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\S+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
 
-  let stdout = execSync('javap -p \'' + file + '\'').toString();
-
   let c = {};
+  let classAttrs;
+  let m = null;
+  let method;
+  let stdout = execSync('javap -p \'' + file + '\'').toString();
 
   c.file = file;
   c.filebase = path.basename(file); 
   c.src = fileRegex.exec(stdout)[1];
   c.name = "";
   c.package = "";
-
   c.attributes = {};
   c.methods = [];
   c.subclasses = [];
 
-  let classAttrs = classRegex.exec(stdout); 
+  classAttrs = classRegex.exec(stdout); 
   if (classAttrs == null) {
     console.log(file);
   }
+
   c.attributes.visibility = classAttrs[1];
   c.attributes.abstract = classAttrs[2] ? true : false;
   c.attributes.final = classAttrs[3] ? true : false;
@@ -99,10 +104,8 @@ function makeClass(file) {
   c.name = classAttrs[6];
   c.package = c.name.substring(0, c.name.lastIndexOf('.'));
 
-  let m = undefined;
   while ( ( m = methodRegex.exec(stdout)) !== null ) {
-    let method = {};
-
+    method = {};
     method.sig = '';
     method.name = m[9];
     method.returnType = m[8] ? m[8] : "(constructor)";
@@ -110,7 +113,7 @@ function makeClass(file) {
     method.callees = [];
 
     method.sig = c.name + '.' + method.name + ((method.args.length > 0) ? '(' : '');
-    method.args.forEach(function(arg,i) {
+    method.args.forEach(function(arg, i) {
       method.sig += arg + ((i < method.args.length - 1) ? ', ' : '');
     });
     method.sig += ((method.args.length > 0) ? ')' : '');
@@ -140,16 +143,16 @@ function compressSubclasses(classes) {
 
   let newClasses = [];
 
-  classes.forEach(function(e,i) {
-    if (!e.filebase.includes('$')) {
+  classes.forEach(function(c, i) {
+    if (!c.filebase.includes('$')) {
       classes.forEach(function(d,j) {
         if (i == j) return;
 
-        if (d.filebase.includes(e.filebase.substring(0, e.filebase.lastIndexOf(".")) + '$')) {
-          e.subclasses.push(d);
+        if (d.filebase.includes(c.filebase.substring(0, c.filebase.lastIndexOf(".")) + '$')) {
+          c.subclasses.push(d);
         }
       });
-      newClasses.push(e);
+      newClasses.push(c);
     }
   });
 
