@@ -20,7 +20,7 @@ const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 function loadProject() {
   getProjectInput(function(project) {
 
-    javapParser.parseAsync(project.classes, function(err, res) {
+    javapParser.parseAsync(project.class_dirs, function(err, res) {
       project.data = res;
       printClasses(project.data);
       project.data = hierarchyParser.runHierarchyParser(project);
@@ -31,7 +31,7 @@ function loadProject() {
 module.exports.loadProject = loadProject
 
 /**
- *  Ask user for a 'classes' dir,
+ *  Ask user for 'class_dirs',
  *   'src' dir,
  *   and 'classpath'.
  *
@@ -39,7 +39,7 @@ module.exports.loadProject = loadProject
  *    
  *    project format:
  *    {
- *      'classes': CLASSES_DIR,
+ *      'class_dirs': CLASSES_DIR,
  *      'src': SRC_DIR,
  *      'classpath': CLASSPATH_STR
  *    }
@@ -47,32 +47,55 @@ module.exports.loadProject = loadProject
 function getProjectInput(callback) {
 
   let project = {};
-  let paths;
 
-  paths = dialog.showOpenDialog({
-      properties: [ 'openDirectory' ] });
-  project.classes = paths[0];
+  project.class_dirs = getClassDirs();
+  project.src = getSrcDirs();
+  project.classpath = getClasspath();
 
-  paths = dialog.showOpenDialog({
-      properties: [ 'openDirectory' ] });
-  project.src = '';
-  paths.forEach(function(e,i) {
-    project.src += e.replace(/ /g, "\\ ") + ((i != paths.length - 1) ? " " : "");
+  callback(project);
+
+}
+
+function getClassDirs() {
+
+  let paths = dialog.showOpenDialog({
+      properties: [ 'openDirectory', 'multiSelections' ] });
+
+  // TODO handle error
+
+  return paths;
+
+}
+
+function getSrcDirs() {
+
+  let src = '';
+  let paths = dialog.showOpenDialog({
+      properties: [ 'openDirectory', , 'multiSelections' ] });
+
+  paths.forEach(function(e, i) {
+    src += e.replace(/ /g, "\\ ") + ((i != paths.length - 1) ? " " : "");
   });
 
-  project.classpath = '';
-  paths = dialog.showOpenDialog({
+  return src;
+
+}
+
+function getClasspath() {
+
+  let classpath = '';
+  let paths = dialog.showOpenDialog({
     properties: [ 'openDirectory', 'openFile', 'multiSelections' ] });
 
-  paths.forEach(function(f,i) {
+  paths.forEach(function(f, i) {
     if (fs.lstatSync(f).isDirectory()) {
-      project.classpath += copyDir(f, f);
+      classpath += copyDir(f, f);
     } else {
-      project.classpath += f + ":";
+      classpath += f + ":";
     }
   });
 
-  callback(project);
+  return classpath;
 
 }
 
@@ -111,9 +134,9 @@ function copyDir(base, dir) {
 }
 
 /**
- *  Print all classes/subclasses and totals.
+ *  Print all class_dirs/subclasses and totals.
  *  
- *  @param array of classes 
+ *  @param array of class objs
 */
 function printClasses(classes) {
 

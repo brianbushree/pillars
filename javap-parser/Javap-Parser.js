@@ -17,42 +17,52 @@ const async = require('async');
  *  @param {String} directory 
  *  @param {function} callback(err, data)
  */
-function parseAsync(dir, callback) {
+function parseAsync(dirs, callback) {
 
   let classes = [];
   let pending;
   let f;
+  let a;
 
-  fs.readdir(dir, function(err, files) {
-    if (err) return callback(err);
+  dirs.forEach(function(dir, i) {
 
-    pending = files.length;
-    if (!pending) return callback(null, classes);
+    fs.readdir(dir, function(err, files) {
+      if (err) return callback(err);
 
-    async.each(files, function(file, cb) {
+      pending = files.length;
+      if (!pending) return callback(null, classes);
 
-      f = path.join(dir, file);
+      async.each(files, function(file, cb) {
 
-      if (fs.lstatSync(f).isDirectory()) {
-        parseAsync(f, function(err, res) {
-          classes = classes.concat(res);
+        f = path.join(dir, file);
+
+        if (fs.lstatSync(f).isDirectory()) {
+
+          a = [];
+          a.push(f);
+
+          parseAsync(a, function(err, res) {
+            classes = classes.concat(res);
+            if (!--pending) {
+              classes = compressSubclasses(classes);
+              callback(null, classes); 
+            }
+            cb();
+          });
+
+        }
+        else {
+          if (path.extname(f).toLowerCase() === '.class') {
+            classes.push(makeClass(f));
+          }
           if (!--pending) {
             classes = compressSubclasses(classes);
             callback(null, classes); 
           }
           cb();
-        });
-      }
-      else {
-        if (path.extname(f).toLowerCase() === '.class') {
-          classes.push(makeClass(f));
         }
-        if (!--pending) {
-          classes = compressSubclasses(classes);
-          callback(null, classes); 
-        }
-        cb();
-      }
+
+      });
 
     });
 
@@ -70,7 +80,7 @@ module.exports.parseAsync = parseAsync;
 function makeClass(file) {
 
   const fileRegex = /^Compiled from \"(.*)\"$/gm;
-  const classRegex = /(?:^\s*)(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(\S+(?:<.*?>)?)\s(?:extends\s(\S+(?:<.*?>)?)\s)?(?:implements\s(\S+(?:<.*?>)?)\s)?{$/gm;
+  const classRegex = /(?:(public|private)\s)?(?:(abstract)\s)?(?:(final)\s)?(?:(strictfp)\s)?(class|interface)\s(\S+(?:<.*?>)?)\s(?:extends\s(.*?)\s)?(?:implements\s(.*?)\s)?{$/gm;
   const methodRegex = /(?:^\s*)(?:(public|protected|private)\s)?(?:(abstract)\s)?(?:(static)\s)?(?:(final)\s)?(?:(native)\s)?(?:(strictfp)\s)?(?:(synchronized)\s)?(?:(\S+(?:\[\])?)\s)?(\w+)\((.*)\).*;$/gm;
 
   let c = {};
@@ -111,11 +121,11 @@ function makeClass(file) {
     method.args = m[10] ? m[10].split(/, /g) : [];
     method.callees = [];
 
-    method.sig = c.name + '.' + method.name + ((method.args.length > 0) ? '(' : '');
+    method.sig = c.name + '.' + method.name + '(';
     method.args.forEach(function(arg, i) {
       method.sig += arg + ((i < method.args.length - 1) ? ', ' : '');
     });
-    method.sig += ((method.args.length > 0) ? ')' : '');
+    method.sig += ')';
 
     method.attributes = {};
     method.attributes.visibility = m[1];

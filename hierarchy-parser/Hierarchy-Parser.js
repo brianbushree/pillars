@@ -38,12 +38,13 @@ function runHierarchyParser(project) {
 
       execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + project.src + '" -c "' + project.classpath + '"';
 
+      console.log(execStr);
+
       stdout = execSync(execStr).toString();
       stdout = handleFuncOverload(stdout, m.sig);
       callees = extractCallees(stdout);
       m.callees = callees;
 
-      console.log(execStr);
       console.log(stdout);
       console.log(callees);
 
@@ -93,19 +94,20 @@ function extractCallees(stdout) {
 */
 function handleFuncOverload(stdout, sig) {
 
-  let method = stdout.split("\n\n");
+  let m;
+  let methods = stdout.split("\n\n");
 
-  if (method.length > 2) {
-    method.forEach(function(e, i) {
+  if (methods.length > 2) {
+    methods.forEach(function(e, i) {
       if (e.includes(sig + '\n')) {
-          method = e;
+          m = e;
           return;
       }
     });
   } else {
-    method = stdout;
+    m = stdout;
   }
 
-  return method;
+  return m;
 
 }
