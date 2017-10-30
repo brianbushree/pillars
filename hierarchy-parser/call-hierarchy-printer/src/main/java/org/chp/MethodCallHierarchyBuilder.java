@@ -43,7 +43,7 @@ public class MethodCallHierarchyBuilder {
     }
 
     public void printCallHierarchy(PrintStream printStream) {
-        printStream.println("Method call hierarchy callees of " + executableReference.toString().replaceAll("#", ".") + "");
+        printStream.println("Method call hierarchy callees of " + executableReference.toString().replaceAll("#", ".")  + "");
         printCallHierarchy(printStream, executableReference, "\t", new HashSet<CtExecutableReference>());
     }
 
@@ -65,7 +65,7 @@ public class MethodCallHierarchyBuilder {
                 for (CtTypeReference subclass : subclasses) {
                     CtExecutableReference reference = eachReference.getOverridingExecutable(subclass);
                     if (reference != null) {
-                        printStream.println(indents + "* " + reference.toString().replaceAll("#", "."));
+                        printStream.println(indents + "" + reference.toString().replaceAll("#", "."));
                         printCallHierarchy(printStream, reference, indents.concat("\t"), alreadyVisited);
                     }
                 }

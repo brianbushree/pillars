@@ -30,11 +30,11 @@ function runHierarchyParser(project) {
   let execStr;
   let stdout;
 
-  async.eachSeries(project.data, function(c, callback) {
+  async.each(project.data, function(c, callback) {
 
     newMethods = [];
 
-    async.eachSeries(c.methods, function(m, cb) {
+    async.each(c.methods, function(m, cb) {
 
       execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + project.src + '" -c "' + project.classpath + '"';
 
@@ -94,16 +94,25 @@ function extractCallees(stdout) {
 */
 function handleFuncOverload(stdout, sig) {
 
-  let m;
+  let m = undefined;
   let methods = stdout.split("\n\n");
 
   if (methods.length > 2) {
     methods.forEach(function(e, i) {
-      if (e.includes(sig + '\n')) {
+      if (e.includes(sig)) {
           m = e;
           return;
+      } else {
+        console.log("e: " + e);
+        console.log("sig: " + sig);
       }
     });
+
+    if (!m) {
+      console.log("\n\nERROR: no function found");
+      m = stdout;
+    }
+
   } else {
     m = stdout;
   }

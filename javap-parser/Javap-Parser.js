@@ -110,7 +110,7 @@ function makeClass(file) {
   c.attributes.interface = classAttrs[5] == 'interface' ? true : false; 
   c.attributes.extends = classAttrs[7];
   c.attributes.implements = classAttrs[8];
-  c.name = classAttrs[6];
+  c.name = classAttrs[6].replace(/<.*>/g, '');
   c.package = c.name.substring(0, c.name.lastIndexOf('.'));
 
   while ( ( m = methodRegex.exec(stdout)) !== null ) {
@@ -126,6 +126,7 @@ function makeClass(file) {
       method.sig += arg + ((i < method.args.length - 1) ? ', ' : '');
     });
     method.sig += ')';
+    method.sig = method.sig.replace(/<.*>/g, '');
 
     method.attributes = {};
     method.attributes.visibility = m[1];

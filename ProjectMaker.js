@@ -24,6 +24,7 @@ function loadProject() {
       project.data = res;
       printClasses(project.data);
       project.data = hierarchyParser.runHierarchyParser(project);
+      printClasses(project.data);
     });
 
   });
@@ -114,7 +115,9 @@ function copyDir(base, dir) {
     fs.mkdirSync(newDir);   
   }
 
-  cp += newDir + ':';
+  if (!cp.includes(newDir.substring(0, f.lastIndexOf('/')) + ':'))  {
+      cp += newDir + ':';
+  }
 
   files = fs.readdirSync(dir);
   files.forEach(function(e, i) {
@@ -122,7 +125,9 @@ function copyDir(base, dir) {
     f = path.join(dir, e);
 
     if (fs.lstatSync(f).isDirectory()) {
+
       cp += copyDir(base, f);
+
     } else if (path.extname(f).toLowerCase() === '.class') {
       fs.createReadStream(f).pipe(fs.createWriteStream(newDir + '/' + path.basename(f)));
     }
