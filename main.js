@@ -12,6 +12,7 @@ const url = require('url');
 const exec = require('child_process').exec;
 const fs = require('fs');
 const projectMaker = require('./ProjectMaker.js');
+const {ipcMain} = require('electron');
 
 let mainWindow;
 
@@ -40,8 +41,12 @@ function createWindow() {
 
   /* eventually trigger onClick() 
       and add to renderer.js     */ 
-  projectMaker.loadProject();
+  // projectMaker.loadProject();
 }
+
+ipcMain.on('load-project', function () {
+    projectMaker.loadProject();
+});
 
 /**
  * init

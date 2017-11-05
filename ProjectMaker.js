@@ -90,7 +90,7 @@ function getClasspath() {
 
   paths.forEach(function(f, i) {
     if (fs.lstatSync(f).isDirectory()) {
-      classpath += copyDir(f, f);
+      classpath += copyDir(f, f, classpath);
     } else {
       classpath += f + ":";
     }
@@ -104,9 +104,9 @@ function getClasspath() {
 * Copy '.class' files and directory structure
 *  into local storage
 */ 
-function copyDir(base, dir) {
-
-  let cp = "";
+function copyDir(base, dir, cp) {
+  
+  let cont;
   let files;
   let f;
   let newDir = appPath + '/stor/' + dir.substring(base.lastIndexOf('/') + 1, dir.length);
@@ -115,8 +115,16 @@ function copyDir(base, dir) {
     fs.mkdirSync(newDir);   
   }
 
-  if (!cp.includes(newDir.substring(0, f.lastIndexOf('/')) + ':'))  {
-      cp += newDir + ':';
+  cont = false;
+  cp.split(':').forEach(function(e, i) {
+    if (e != '' && newDir.includes(e)) {
+      cont = true;
+      return;
+    }
+  });
+
+  if (!cont) {
+    cp += newDir + ':';
   }
 
   files = fs.readdirSync(dir);
@@ -126,7 +134,7 @@ function copyDir(base, dir) {
 
     if (fs.lstatSync(f).isDirectory()) {
 
-      cp += copyDir(base, f);
+      cp = copyDir(base, f, cp);
 
     } else if (path.extname(f).toLowerCase() === '.class') {
       fs.createReadStream(f).pipe(fs.createWriteStream(newDir + '/' + path.basename(f)));

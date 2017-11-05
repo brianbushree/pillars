@@ -102,9 +102,6 @@ function handleFuncOverload(stdout, sig) {
       if (e.includes(sig)) {
           m = e;
           return;
-      } else {
-        console.log("e: " + e);
-        console.log("sig: " + sig);
       }
     });
 
