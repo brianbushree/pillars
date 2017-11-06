@@ -16,6 +16,7 @@ import spoon.reflect.reference.CtTypeReference;
 import spoon.support.QueueProcessingManager;
 import spoon.support.compiler.FileSystemFolder;
 
+import java.util.Collections;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
@@ -47,7 +48,48 @@ public class ShowMethodCallHierarchy {
     private PrintStream printStream;
 
     public static void main(String[] args) throws Exception {
-        ShowMethodCallHierarchy.parse(args).doMain();
+        List<String[]> margs = runMultiple(args);
+        for (String[] a : margs) {
+            ShowMethodCallHierarchy.parse(a).doMain();
+        }
+    }
+
+    private static List<String[]> runMultiple(String[] args) {
+        List<String> methods = new ArrayList<String>();
+        List<String[]> margs = new ArrayList<String[]>();
+        int m = -1;
+        int i;
+        int j;
+        for (i = 0; i < args.length; i++) {
+            if (args[i].equals("-M") && i + 1 < args.length) {
+                Collections.addAll(methods, args[i + 1].split(" "));
+                m = i;
+                break;
+            }
+        }
+
+        if (m == -1) {
+
+            margs.add(args);
+
+        } else {
+
+            for (j = 0; j < methods.size(); j++) {
+                margs.add(new String[args.length]);
+                for (i = 0; i < args.length; i++) {
+                    if (i == m) {
+                        margs.get(j)[i] = "-m";
+                    } else if (i == m + 1) {
+                        margs.get(j)[i] = methods.get(j);
+                    } else {
+                        margs.get(j)[i] = args[i];
+                    }
+                }
+            }
+
+        }
+
+        return margs;
     }
 
     private static ShowMethodCallHierarchy parse(String[] args) {
