@@ -27,42 +27,68 @@ function runHierarchyParser(project) {
   let callees;
   let newClasses = [];
   let newMethods;
+  let methodMap;
   let execStr;
   let stdout;
+  let out;
 
-  async.each(project.data, function(c, callback) {
+  execStr = 'java -jar "' + chpJar + '" -M "' + getAllNames(project.data) + '" -s "' + project.src + '" -c "' + project.classpath + '"';
+
+  console.log(execStr);
+
+  stdout = execSync(execStr).toString();
+  methodMap = getMethodMap(stdout);
+
+  async.eachSeries(project.data, function(c, callback) {
 
     newMethods = [];
 
-    async.each(c.methods, function(m, cb) {
-
-      execStr = 'java -jar "' + chpJar + '" -m ' + (c.name + '.' + m.name) + ' -s "' + project.src + '" -c "' + project.classpath + '"';
-
-      console.log(execStr);
-
-      stdout = execSync(execStr).toString();
-      stdout = handleFuncOverload(stdout, m.sig);
-      callees = extractCallees(stdout);
+    async.eachSeries(c.methods, function(m, cb) {
+      out = handleFuncOverload(methodMap[(c.name + '.' + m.name)], m.sig);
+      callees = extractCallees(out);
       m.callees = callees;
-
-      console.log(stdout);
-      console.log(callees);
-
       newMethods.push(m);
       cb();
-
     });
 
     c.methods = newMethods;
     newClasses.push(c);
     callback();
-
   });
 
   return newClasses;
 
 }
 module.exports.runHierarchyParser = runHierarchyParser;
+
+function getMethodMap(stdout) {
+
+  const methodOutRegex = /^([\S\s]+?)^\[ (\S+) \]$/gm;
+  let match;
+  let map = {};
+
+  while( (match = methodOutRegex.exec(stdout)) !== null) {
+    map[match[2]] = match[1];
+  }
+
+  return map;
+}
+
+function getAllNames(data) {
+  let names = "";
+  async.eachSeries(data, function(c, callback) {
+    async.eachSeries(c.methods, function(m, cb) {
+      names += (c.name + '.' + m.name) + " ";
+      cb();
+    });
+    callback();
+  });
+
+  if (names.length > 0) {
+    names = names.substring(0, names.length - 1);
+  }
+  return names;
+}
 
 /**
 *  Extract direct callees from CHP output.

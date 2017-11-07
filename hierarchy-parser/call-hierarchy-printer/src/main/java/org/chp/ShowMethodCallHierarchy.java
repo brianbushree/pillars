@@ -17,6 +17,7 @@ import spoon.support.QueueProcessingManager;
 import spoon.support.compiler.FileSystemFolder;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
@@ -48,15 +49,16 @@ public class ShowMethodCallHierarchy {
     private PrintStream printStream;
 
     public static void main(String[] args) throws Exception {
-        List<String[]> margs = runMultiple(args);
-        for (String[] a : margs) {
-            ShowMethodCallHierarchy.parse(a).doMain();
+        Map<String, String[]> margs = runMultiple(args);
+        for (Map.Entry<String, String[]> e : margs.entrySet()) {
+            ShowMethodCallHierarchy.parse(e.getValue()).doMain();
+            System.out.println("[ " + e.getKey() + " ]");
         }
     }
 
-    private static List<String[]> runMultiple(String[] args) {
+    private static Map<String, String[]> runMultiple(String[] args) {
         List<String> methods = new ArrayList<String>();
-        List<String[]> margs = new ArrayList<String[]>();
+        Map<String, String[]> margs = new LinkedHashMap<String, String[]>();
         int m = -1;
         int i;
         int j;
@@ -70,19 +72,19 @@ public class ShowMethodCallHierarchy {
 
         if (m == -1) {
 
-            margs.add(args);
+            margs.put("", args);
 
         } else {
 
             for (j = 0; j < methods.size(); j++) {
-                margs.add(new String[args.length]);
+                margs.put(methods.get(j), new String[args.length]);
                 for (i = 0; i < args.length; i++) {
                     if (i == m) {
-                        margs.get(j)[i] = "-m";
+                        margs.get(methods.get(j))[i] = "-m";
                     } else if (i == m + 1) {
-                        margs.get(j)[i] = methods.get(j);
+                        margs.get(methods.get(j))[i] = methods.get(j);
                     } else {
-                        margs.get(j)[i] = args[i];
+                        margs.get(methods.get(j))[i] = args[i];
                     }
                 }
             }
