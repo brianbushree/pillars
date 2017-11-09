@@ -4,12 +4,10 @@
  *     make/load projects to visualize
  */
 const electron = require('electron');
-const dialog = electron.dialog;
 const fs = require('fs');
 const path = require('path');
 const {app} = require('electron');
 const appPath = app.getAppPath();
-
 const javapParser = require('./javap-parser/Javap-Parser.js');
 const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 
@@ -17,76 +15,41 @@ const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
  *  Load a project into application
  *
  */
-function loadProject() {
-  getProjectInput(function(project) {
+function loadProject(project) {
+
+    project.class_dirs = cleanClassDirs(project.class_dirs);
+    project.src = cleanSrcDirs(project.src);
+    project.classpath = cleanClasspath(project.classpath);
 
     javapParser.parseAsync(project.class_dirs, function(err, res) {
       project.data = res;
-      printClasses(project.data);
       project.data = hierarchyParser.runHierarchyParser(project);
       printClasses(project.data);
     });
 
-  });
 }
 module.exports.loadProject = loadProject
 
-/**
- *  Ask user for 'class_dirs',
- *   'src' dir,
- *   and 'classpath'.
- *
- *  @param callback(project)
- *    
- *    project format:
- *    {
- *      'class_dirs': CLASSES_DIR,
- *      'src': SRC_DIR,
- *      'classpath': CLASSPATH_STR
- *    }
- */
-function getProjectInput(callback) {
 
-  let project = {};
-
-  project.class_dirs = getClassDirs();
-  project.src = getSrcDirs();
-  project.classpath = getClasspath();
-
-  callback(project);
-
+function cleanClassDirs(dirs) {
+  return dirs;
 }
 
-function getClassDirs() {
-
-  let paths = dialog.showOpenDialog({
-      properties: [ 'openDirectory', 'multiSelections' ] });
-
-  // TODO handle error
-
-  return paths;
-
-}
-
-function getSrcDirs() {
+function cleanSrcDirs(dirs) {
 
   let src = '';
-  let paths = dialog.showOpenDialog({
-      properties: [ 'openDirectory', , 'multiSelections' ] });
 
-  paths.forEach(function(e, i) {
-    src += e.replace(/ /g, "\\ ") + ((i != paths.length - 1) ? " " : "");
+  dirs.forEach(function(e, i) {
+    src += e.replace(/ /g, "\\ ") + ((i != dirs.length - 1) ? " " : "");
   });
 
   return src;
 
 }
 
-function getClasspath() {
+function cleanClasspath(paths) {
 
   let classpath = '';
-  let paths = dialog.showOpenDialog({
-    properties: [ 'openDirectory', 'openFile', 'multiSelections' ] });
 
   paths.forEach(function(f, i) {
     if (fs.lstatSync(f).isDirectory()) {

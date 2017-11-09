@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Load New Project</title>
+  </head>
+  <body style="-webkit-app-region: drag">
+
+    <script src="./renderer.js"></script>
+
+    <h1>Enter Project Data</h1>
+    <label>Class Dir(s)</label>
+    <button onclick="class_prompt()">select</button>
+    <br/>
+
+    <div id="proj-classes">
+    </div>
+
+    <label>Source Dir(s)</label>
+    <button onclick="src_prompt()">select</button>
+    <br/>
+
+    <div id="proj-src">
+    </div>
+
+    <label>Classpath</label>
+    <button onclick="classpath_prompt()">select</button>
+    <br/>
+
+    <div id="proj-classpath">
+    </div>
+
+    <br/>
+    <button onclick="make_project(project)">load</button>
+
+    <br/>
+    <button onclick="start()">back</button>
+
+  </body>
+</html>

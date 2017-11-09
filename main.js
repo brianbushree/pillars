@@ -11,42 +11,9 @@ const path = require('path');
 const url = require('url');
 const exec = require('child_process').exec;
 const fs = require('fs');
-const projectMaker = require('./ProjectMaker.js');
-const {ipcMain} = require('electron');
+const interf = require('./interface.js');
 
 let mainWindow;
-
-/**
- *  Create initial Electron window.
- */
-function createWindow() {
-
-  mainWindow = new BrowserWindow({
-      width: 800, height: 600,
-      frame: false,
-      titleBarStyle: 'hidden-inset' });
-
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
-    slashes: true
-  }));
-
-  // DevTools
-  // mainWindow.webContents.openDevTools()
-
-  mainWindow.on('closed', function () {
-    mainWindow = null
-  });
-
-  /* eventually trigger onClick() 
-      and add to renderer.js     */ 
-  // projectMaker.loadProject();
-}
-
-ipcMain.on('load-project', function () {
-    projectMaker.loadProject();
-});
 
 /**
  * init
@@ -66,3 +33,36 @@ app.on('window-all-closed', function () {
     app.quit();
   }
 });
+
+/**
+ *  Create initial Electron window.
+ */
+function createWindow() {
+
+  mainWindow = new BrowserWindow({
+      width: 800, height: 600,
+      frame: false,
+      titleBarStyle: 'hidden-inset' });
+
+  loadWindow('index.html');
+
+  // DevTools
+  mainWindow.webContents.openDevTools()
+
+  mainWindow.on('closed', function () {
+    mainWindow = null
+  });
+
+  /* eventually trigger onClick() 
+      and add to renderer.js     */ 
+  // projectMaker.loadProject();
+}
+
+function loadWindow(file) {
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, file),
+    protocol: 'file:',
+    slashes: true
+  }));
+}
+module.exports.loadWindow = loadWindow;
