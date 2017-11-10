@@ -30,7 +30,13 @@ ipcMain.on('classpath_prompt', function (event, data) {
 
 ipcMain.on('load_project', function (event, data) {
   console.log(data);
-  projectMaker.loadProject(data);
+  projectMaker.loadProject(data, function(err, data) {
+    if (err) {
+      console.log(err);
+    }
+
+    event.sender.send('project-made', data);
+  });
 });
 
 function get_dirs() {
