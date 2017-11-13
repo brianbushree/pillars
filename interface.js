@@ -2,7 +2,10 @@ const electron = require('electron');
 const {ipcMain} = electron;
 const dialog = electron.dialog;
 const projectMaker = require('./ProjectMaker.js');
+const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 const main = require('./main.js');
+
+let project = null;
 
 ipcMain.on('start', function (event, data) {
   main.loadWindow('index.html');
@@ -34,9 +37,21 @@ ipcMain.on('load_project', function (event, data) {
     if (err) {
       console.log(err);
     }
-
-    event.sender.send('project-made', data);
+    project = data;
+    main.loadWindow('select-root.html');
   });
+});
+
+ipcMain.on('methods-req', function (event, data) {
+  event.sender.send('methods-res', hierarchyParser.getAllSigs(project.data));
+});
+
+ipcMain.on('root-select', function (event, data) {
+
+    // build data
+    console.log(data);
+    // main.loadWindow()
+
 });
 
 function get_dirs() {

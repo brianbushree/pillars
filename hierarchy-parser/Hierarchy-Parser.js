@@ -32,7 +32,7 @@ function runHierarchyParser(project) {
   let stdout;
   let out;
 
-  execStr = 'java -jar "' + chpJar + '" -M "' + getAllNames(project.data) + '" -s "' + project.src + '" -c "' + project.classpath + '"';
+  execStr = 'java -jar "' + chpJar + '" -M "' + getAllNames(project.data).join(' ') + '" -s "' + project.src + '" -c "' + project.classpath + '"';
 
   console.log(execStr);
 
@@ -74,21 +74,34 @@ function getMethodMap(stdout) {
   return map;
 }
 
+// add to Project as a method (Classes)
 function getAllNames(data) {
-  let names = "";
+  let names = [];
   async.eachSeries(data, function(c, callback) {
     async.eachSeries(c.methods, function(m, cb) {
-      names += (c.name + '.' + m.name) + " ";
+      names.push(c.name + '.' + m.name);
       cb();
     });
     callback();
   });
 
-  if (names.length > 0) {
-    names = names.substring(0, names.length - 1);
-  }
   return names;
 }
+module.exports.getAllNames = getAllNames;
+
+function getAllSigs(data) {
+  let sigs = [];
+  async.eachSeries(data, function(c, callback) {
+    async.eachSeries(c.methods, function(m, cb) {
+      sigs.push(m.sig);
+      cb();
+    });
+    callback();
+  });
+
+  return sigs;
+}
+module.exports.getAllSigs = getAllSigs;
 
 /**
 *  Extract direct callees from CHP output.

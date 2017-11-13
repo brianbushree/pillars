@@ -5,17 +5,105 @@ let project = {
 	'classpath': []
 };
 
+let loading = null;
+
 function make_project(project) {
 	if (project.class_dirs.length && project.src.length && project.classpath.length) {
 		alert("run!");
 		ipcRenderer.send('load_project', project);
 	}
+	start_loading();
 }
 
-ipcRenderer.on('project-made', function(e, data) {
-	console.log('finished!');
-	console.log(data.data);
+function start_loading() {
+	loading = window.setInterval(function() {
+		let l = document.getElementById('loading');
+		if (l.textContent.length < 5) {
+			l.textContent += "-"
+		} else {
+			l.textContent = "-"
+		}
+	}, 100);
+}
+
+ipcRenderer.on('methods-res', function(e, sigs) {
+	console.log(sigs);
+	// clearInterval(loading);
+	add_methods(sigs);
 });
+
+function add_methods(sigs) {
+	let cont = document.getElementById('methods');
+	let elem;
+	let a;
+
+	sigs.forEach(function(e, i) {
+
+		elem = document.createElement('p');
+		elem.setAttribute('class', 'method')
+		elem.appendChild(document.createTextNode(e + ' '));
+		a = document.createElement('a');
+		a.appendChild(document.createTextNode('select'));
+		a.setAttribute('href', '#');
+		a.setAttribute('onclick', 'select_method(this);  return false;');
+
+
+		elem.appendChild(a);
+		cont.appendChild(elem);
+
+	});
+}
+
+function select_method(link) {
+	let parent = link.parentNode;
+	let cls;
+	parent.setAttribute('style', 'color: red;');
+	deselect_all_methods(parent);
+	add_class(parent, 'selected');
+}
+
+function deselect_all_methods(parent) {
+
+	let all = document.querySelectorAll('.method.selected');
+
+	for (let e of all) {
+		remove_class(e, 'selected')
+		e.setAttribute('style', '');
+	}
+
+}
+
+function add_class(e, name) {
+	let cls = e.getAttribute('class').split(' ');
+	cls.push(name);
+	e.setAttribute('class', cls.join(' '));
+}
+
+function remove_class(e, name) {
+	let cls = e.getAttribute('class').split(' ');
+	let i;
+
+	if ( (i = cls.indexOf(name)) != -1) {
+		cls.splice(i, 1);
+	}
+
+	e.setAttribute('class', cls.join(' '));
+}
+
+function select_root() {
+
+	let m = document.querySelector('.method.selected');
+
+	if (m) {
+		ipcRenderer.send('root-select', m.textContent.substring(0, m.textContent.lastIndexOf(' ')));
+	} else {
+		alert('You must select a root.');
+	}
+}
+
+function get_methods() {
+	ipcRenderer.send('methods-req');
+}
 
 function start() {
 	ipcRenderer.send('start');
