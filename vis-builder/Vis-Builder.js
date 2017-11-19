@@ -2,15 +2,16 @@
 *
 *  Vis-Builder
 *
-*
+*     This builds data to input to the visualization. 
 */
 const async = require('async');
 
 function buildVisData(project) {
 
-  let vis_data = null;
-  let map = buildDataMap(project);
-  console.log(buildHierarchyData(project, map));
+  let vis_data = {};
+  vis_data['map'] = buildDataMap(project);
+  vis_data['data'] = buildHierarchyData(project, map);
+  console.log(vis_data['data']);
 
   return vis_data;
 
@@ -23,7 +24,6 @@ function buildDataMap(project) {
 
   async.each(project.data, function(c, callback) {
     async.each(c.methods, function(m, cb) {
-
 
       data_map[m.sig] = m;
       cb();
@@ -55,8 +55,6 @@ function buildHierarchyData(project, data_map) {
   console.log(csv_data);
 
   return csv_data;
-  // connect each method to it's callees
-  // Note: watch for infinite recursion!!
 
 }
 
@@ -66,7 +64,9 @@ function buildMethod(csv_data, data_map, sig, node, prefix) {
   csv_data.push(prefix + ',"' + sig + '"');
 
   if (!data_map[sig]) {
+
     console.log("ERROR: no method-entry; " + sig);
+
   } else {
 
     data_map[sig].callees.forEach(function(e, i) {
@@ -85,11 +85,5 @@ function buildMethod(csv_data, data_map, sig, node, prefix) {
 
   }
 
-
   return node;
 }
-
-// function getParent(prefix) {
-//     let n = prefix.split('.');
-//     return n[n.length-1];
-// }
