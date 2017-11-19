@@ -32,7 +32,7 @@ function runHierarchyParser(project) {
   let stdout;
   let out;
 
-  execStr = 'java -jar "' + chpJar + '" -M "' + getAllNames(project.data).join(' ') + '" -s "' + project.src + '" -c "' + project.classpath + '"';
+  execStr = 'java -jar "' + chpJar + '" -M \'' + getAllNames(project.data).join(' ') + '\' -s "' + project.src + '" -c "' + project.classpath + '"';
 
   console.log(execStr);
 
@@ -79,7 +79,9 @@ function getAllNames(data) {
   let names = [];
   async.eachSeries(data, function(c, callback) {
     async.eachSeries(c.methods, function(m, cb) {
+        
       names.push(c.name + '.' + m.name);
+
       cb();
     });
     callback();

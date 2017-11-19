@@ -44,7 +44,7 @@ function parseAsync(dirs, callback) {
           parseAsync(a, function(err, res) {
             classes = classes.concat(res);
             if (!--pending) {
-              classes = compressSubclasses(classes);
+              //classes = compressSubclasses(classes);
               callback(null, classes); 
             }
             cb();
@@ -56,7 +56,7 @@ function parseAsync(dirs, callback) {
             classes.push(makeClass(f));
           }
           if (!--pending) {
-            classes = compressSubclasses(classes);
+            // classes = compressSubclasses(classes);
             callback(null, classes); 
           }
           cb();
