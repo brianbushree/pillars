@@ -2,6 +2,7 @@ const electron = require('electron');
 const {ipcMain} = electron;
 const dialog = electron.dialog;
 const projectMaker = require('./ProjectMaker.js');
+const visBuilder = require('./vis-builder/Vis-Builder.js');
 const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 const main = require('./main.js');
 
@@ -49,7 +50,7 @@ ipcMain.on('methods-req', function (event, data) {
 ipcMain.on('root-select', function (event, data) {
 
     // build data
-    console.log(data);
+    console.log(visBuilder.buildVisData(project));
     // main.loadWindow()
 
 });
