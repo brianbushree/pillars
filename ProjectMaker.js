@@ -3,11 +3,8 @@
  *
  *     make/load projects to visualize
  */
-const electron = require('electron');
 const fs = require('fs');
 const path = require('path');
-const {app} = require('electron');
-const appPath = app.getAppPath();
 const javapParser = require('./javap-parser/Javap-Parser.js');
 const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 
@@ -15,17 +12,16 @@ const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
  *  Load a project into application
  *
  */
-function loadProject(project, callback) {
+function loadProject(project, appPath, callback) {
 
     project.class_dirs = cleanClassDirs(project.class_dirs);
     project.src = cleanSrcDirs(project.src);
-    project.classpath = cleanClasspath(project.classpath);
-
-    // fork??
+    project.classpath = cleanClasspath(project.classpath, appPath);
 
     javapParser.parseAsync(project.class_dirs, function(err, res) {
       project.data = res;
-      project.data = hierarchyParser.runHierarchyParser(project);
+      console.log("APPPATH: " + appPath);
+      project.data = hierarchyParser.runHierarchyParser(project, appPath);
       printClasses(project.data);
       callback(null, project);
     });
@@ -50,13 +46,13 @@ function cleanSrcDirs(dirs) {
 
 }
 
-function cleanClasspath(paths) {
+function cleanClasspath(paths, appPath) {
 
   let classpath = '';
 
   paths.forEach(function(f, i) {
     if (fs.lstatSync(f).isDirectory()) {
-      classpath += copyDir(f, f, classpath);
+      classpath += copyDir(f, f, classpath, appPath);
     } else {
       classpath += f + ":";
     }
@@ -70,7 +66,7 @@ function cleanClasspath(paths) {
 * Copy '.class' files and directory structure
 *  into local storage
 */ 
-function copyDir(base, dir, cp) {
+function copyDir(base, dir, cp, appPath) {
   
   let cont;
   let files;
@@ -100,7 +96,7 @@ function copyDir(base, dir, cp) {
 
     if (fs.lstatSync(f).isDirectory()) {
 
-      cp = copyDir(base, f, cp);
+      cp = copyDir(base, f, cp, appPath);
 
     } else if (path.extname(f).toLowerCase() === '.class') {
       fs.createReadStream(f).pipe(fs.createWriteStream(newDir + '/' + path.basename(f)));

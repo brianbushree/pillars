@@ -43,7 +43,8 @@ function createWindow() {
       width: 800, height: 600,
       center: true,
       frame: false,
-      titleBarStyle: 'hidden-inset' });
+      titleBarStyle: 'hidden-inset',
+      nodeIntegrationInWorker: true });
 
   loadWindow('web/index.html');
 

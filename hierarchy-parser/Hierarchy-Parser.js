@@ -5,15 +5,9 @@
  *      into each method's callees attribute
  */
 const execSync = require('child_process').execSync;
-const electron = require('electron');
-const dialog = electron.dialog;
 const async = require('async');
-const {app} = require('electron');
-const appPath = app.getAppPath();
 const fs = require('fs');
 const path = require('path');
-
-const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
 
 /**
 *  Using project input, for each
@@ -22,7 +16,9 @@ const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
 *  @param {Object} project 
 *  @return {String} project.data 
 */
-function runHierarchyParser(project) {
+function runHierarchyParser(project, appPath) {
+
+  const chpJar = appPath + '/hierarchy-parser/org.chp-1.0.jar';
 
   let callees;
   let newClasses = [];
