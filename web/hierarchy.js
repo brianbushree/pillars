@@ -6,7 +6,7 @@ var scales = {};
 
 scales.color = {};
 scales.color.depth = d3.scaleOrdinal();
-scales.color.size = d3.scaleSequential(d3.interpolateGnBu);
+// scales.color.size = d3.scaleSequential(d3.interpolateGnBu);
 
 scales.radius = d3.scaleSqrt();
 
@@ -55,6 +55,16 @@ function convert(row) {
   return row;
 }
 
+function selectRoot(root, sig) {
+  for (let i = 0; i < root.children.length; i++) {
+    if (root.children[i].data.sig == visData.root) {
+      root = root.children[i];
+      break;
+    }
+  }
+  return root;
+}
+
 function callback(error, data) {
     if (error) {
         console.warn(file, error);
@@ -71,7 +81,10 @@ function callback(error, data) {
       });
 
     // convert csv into hierarchy
-    var root = stratify(data);
+    var real_root = stratify(data);
+    var root = real_root;
+
+    root = selectRoot(root, visData.root);
 
     // sort by height then value
     // https://github.com/d3/d3-hierarchy#node_sort
@@ -91,15 +104,15 @@ function callback(error, data) {
     // });
 
     console.log("root:", root);
-    var sizeExtent = d3.extent(root.descendants(), function(d) { return d.data.rSize; });
+    // var sizeExtent = d3.extent(root.descendants(), function(d) { return d.data.rSize; });
 
     // setup color scales
     scales.color.depth.domain(d3.range(root.height + 1));
-    scales.color.depth.range(d3.schemeGnBu[root.height + 1]);
-    scales.color.size.domain(sizeExtent);
+    scales.color.depth.range(d3.schemeGnBu[(root.height + 1)]);
+    // scales.color.size.domain(sizeExtent);
 
     // setup radius scale
-    scales.radius.domain(sizeExtent);
+    // scales.radius.domain(sizeExtent);
 
     drawTraditionalStraight("traditional", root.copy());
     // drawCircularDendrogram("circular_dendrogram", root.copy());
@@ -110,13 +123,14 @@ function drawNodes(g, nodes, depth, raise) {
     .data(nodes)
     .enter()
     .append("circle")
-      .attr("r", 10)
+      .attr("r", 8)
       .attr("cx", x)
       .attr("cy", y)
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
       .attr("class", "node")
-      .style("fill", function(d) { return depth ? scales.color.depth(d.depth) : scales.color.size(d.data.rSize); })
+      .style("fill", function(d) { return scales.color.depth(d.depth); })
+      //.style("fill", "#000")
       .on("mouseover.tooltip", function(d) {
         show_tooltip(g, d3.select(this));
         d3.select(this).classed("selected", true);

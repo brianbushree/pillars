@@ -51,8 +51,8 @@ ipcMain.on('methods-req', function (event, data) {
 ipcMain.on('root-select', function (event, data) {
 
     // build data
-    visData = visBuilder.buildVisData(project);
-    main.loadWindow("web/vis.html");
+    visData = visBuilder.buildVisData(project, data);
+    main.loadWindowResize("web/vis.html", 950, 750);
 
 });
 

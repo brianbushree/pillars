@@ -41,6 +41,7 @@ function createWindow() {
 
   mainWindow = new BrowserWindow({
       width: 800, height: 600,
+      center: true,
       frame: false,
       titleBarStyle: 'hidden-inset' });
 
@@ -66,3 +67,15 @@ function loadWindow(file) {
   }));
 }
 module.exports.loadWindow = loadWindow;
+
+
+function loadWindowResize(file, w, h) {
+  loadWindow(file);
+  mainWindow.setBounds({
+    x: 350,
+    y: 200,
+    width: 950,
+    height: 750
+  });
+}
+module.exports.loadWindowResize = loadWindowResize;

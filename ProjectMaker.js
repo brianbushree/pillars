@@ -21,6 +21,8 @@ function loadProject(project, callback) {
     project.src = cleanSrcDirs(project.src);
     project.classpath = cleanClasspath(project.classpath);
 
+    // fork??
+
     javapParser.parseAsync(project.class_dirs, function(err, res) {
       project.data = res;
       project.data = hierarchyParser.runHierarchyParser(project);

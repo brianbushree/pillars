@@ -6,11 +6,12 @@
 */
 const async = require('async');
 
-function buildVisData(project) {
+function buildVisData(project, root) {
 
   let vis_data = {};
   vis_data['map'] = buildDataMap(project);
   vis_data['data'] = buildHierarchyData(project, vis_data['map']);
+  vis_data['root'] = root;
   console.log(vis_data['data']);
 
   return vis_data;
@@ -71,9 +72,9 @@ function buildMethod(csv_data, data_map, sig, node, prefix) {
 
     data_map[sig].callees.forEach(function(e, i) {
 
-      if (e == sig) {
+      if (reursionCheck(data_map, [], e)) {
 
-        // Recursion! - TODO
+        console.log("Recursion!!! : " + e);
 
       } else {
 
@@ -86,4 +87,31 @@ function buildMethod(csv_data, data_map, sig, node, prefix) {
   }
 
   return node;
+}
+
+function reursionCheck(data_map, trace, check) {
+
+  if (trace.includes(check)) {
+
+    return true;
+
+  } else {
+
+    trace.push(check);
+
+    if (data_map[check]) {
+      for (let i = 0; i < data_map[check].callees.length; i++) {
+        if (reursionCheck(data_map, trace.slice(), data_map[check].callees[i])) {
+          return true;
+        }
+      }
+    } else {
+
+      console.log("ERROR: no method-entry; " + check);
+
+    }
+
+  }
+
+  return false;
 }
