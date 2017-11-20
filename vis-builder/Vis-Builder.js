@@ -10,7 +10,7 @@ function buildVisData(project) {
 
   let vis_data = {};
   vis_data['map'] = buildDataMap(project);
-  vis_data['data'] = buildHierarchyData(project, map);
+  vis_data['data'] = buildHierarchyData(project, vis_data['map']);
   console.log(vis_data['data']);
 
   return vis_data;
@@ -38,7 +38,7 @@ function buildDataMap(project) {
 
 function buildHierarchyData(project, data_map) {
 
-  let csv_data = [ 'id,ref', '0,null' ];
+  let csv_data = [ { 'id': '0', 'sig': null } ];
   let node = 1;
 
   // connect from root to each method
@@ -61,7 +61,7 @@ function buildHierarchyData(project, data_map) {
 function buildMethod(csv_data, data_map, sig, node, prefix) {
 
   prefix += '.' + (node++);
-  csv_data.push(prefix + ',"' + sig + '"');
+  csv_data.push({ 'id': prefix, 'sig': sig });
 
   if (!data_map[sig]) {
 

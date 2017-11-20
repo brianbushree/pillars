@@ -7,17 +7,18 @@ const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
 const main = require('./main.js');
 
 let project = null;
+let visData = null;
 
 ipcMain.on('start', function (event, data) {
-  main.loadWindow('index.html');
+  main.loadWindow('web/index.html');
 });
 
 ipcMain.on('load_existing', function (event, data) {
-  main.loadWindow('load-existing.html');
+  main.loadWindow('web/load-existing.html');
 });
 
 ipcMain.on('load_new', function (event, data) {
-  main.loadWindow('load-new.html');
+  main.loadWindow('web/load-new.html');
 });
 
 ipcMain.on('class_prompt', function (event, data) {
@@ -39,7 +40,7 @@ ipcMain.on('load_project', function (event, data) {
       console.log(err);
     }
     project = data;
-    main.loadWindow('select-root.html');
+    main.loadWindow('web/select-root.html');
   });
 });
 
@@ -50,9 +51,13 @@ ipcMain.on('methods-req', function (event, data) {
 ipcMain.on('root-select', function (event, data) {
 
     // build data
-    console.log(visBuilder.buildVisData(project));
-    // main.loadWindow()
+    visData = visBuilder.buildVisData(project);
+    main.loadWindow("web/vis.html");
 
+});
+
+ipcMain.on('data-req', function (event, data) {
+  event.sender.send('data-res', visData);
 });
 
 function get_dirs() {

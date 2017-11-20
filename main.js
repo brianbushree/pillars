@@ -44,7 +44,7 @@ function createWindow() {
       frame: false,
       titleBarStyle: 'hidden-inset' });
 
-  loadWindow('index.html');
+  loadWindow('web/index.html');
 
   // DevTools
   mainWindow.webContents.openDevTools()
