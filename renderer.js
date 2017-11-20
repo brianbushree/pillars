@@ -97,7 +97,8 @@ function select_root() {
 	if (m) {
 		ipcRenderer.send('root-select', m.textContent.substring(0, m.textContent.lastIndexOf(' ')));
 	} else {
-		alert('You must select a root.');
+		alert('no root selected - showing all');
+		ipcRenderer.send('root-select', null);
 	}
 }
 

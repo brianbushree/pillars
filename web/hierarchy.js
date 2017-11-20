@@ -104,11 +104,12 @@ function callback(error, data) {
     // });
 
     console.log("root:", root);
+    console.log("real-root:", real_root);
     // var sizeExtent = d3.extent(root.descendants(), function(d) { return d.data.rSize; });
 
     // setup color scales
     scales.color.depth.domain(d3.range(root.height + 1));
-    scales.color.depth.range(d3.schemeGnBu[(root.height + 1)]);
+    scales.color.depth.range(d3.schemeGnBu[((root.height + 1)%10 < 3) ? 3 : (root.height + 1)%10]);
     // scales.color.size.domain(sizeExtent);
 
     // setup radius scale
