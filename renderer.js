@@ -23,7 +23,7 @@ function start_loading() {
 		} else {
 			l.textContent = "-"
 		}
-	}, 100);
+	}, 1000);
 }
 
 ipcRenderer.on('methods-res', function(e, sigs) {

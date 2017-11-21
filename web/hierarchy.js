@@ -47,6 +47,10 @@ ipcRenderer.on('data-res', function (e, data) {
   callback(null, visData.data); 
 });
 
+function newRoot() {
+  ipcRenderer.send('new_root');
+}
+
 function convert(row) {
   row.id = row.name;
   var parts = row.name.split(".")

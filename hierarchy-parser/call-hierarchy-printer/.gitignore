@@ -1,9 +1,0 @@
-.DS_Store
-.idea/
-chp.classpath
-target/
-spooned/
-*.swp
-*.iml
-.gradle/
-build/

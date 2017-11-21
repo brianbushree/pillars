@@ -20,7 +20,6 @@ function loadProject(project, appPath, callback) {
 
     javapParser.parseAsync(project.class_dirs, function(err, res) {
       project.data = res;
-      console.log("APPPATH: " + appPath);
       project.data = hierarchyParser.runHierarchyParser(project, appPath);
       printClasses(project.data);
       callback(null, project);
