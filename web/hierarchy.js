@@ -31,6 +31,8 @@ var config = {
 // maximum diameter of circle is minimum dimension
 config.d = Math.min(config.w, config.h);
 
+var parents = [];
+
 // d3.csv(file, convert, callback);
 
 let visData = null;
@@ -77,7 +79,7 @@ function callback(error, data) {
 
     console.log("data:", data.length, data);
 
-    // used to create hierarchies
+    // create hierarchy
     var stratify = d3.stratify()
       .id(function(d) { return d.id; })
       .parentId(function(d) {
@@ -89,53 +91,47 @@ function callback(error, data) {
     var root = real_root;
 
     root = selectRoot(root, visData.root);
-
-    // sort by height then value
-    // https://github.com/d3/d3-hierarchy#node_sort
-    // root.sort(function(a, b) {
-    //     if (a.height != b.height) {
-    //       return d3.ascending(a.height, b.height);
-    //     }
-    //     else {
-    //       return d3.ascending(a.value, b.value);
-    //     }
-    //   });
-
-    // // save each recursive-size
-    // root.sum(function(d) { return d.size; });
-    // root.each(function(d) {
-    //   d.data.rSize = d.value;
-    // });
-
-    console.log("root:", root);
     console.log("real-root:", real_root);
-    // var sizeExtent = d3.extent(root.descendants(), function(d) { return d.data.rSize; });
 
-    // setup color scales
-    scales.color.depth.domain(d3.range(root.height + 1));
-    scales.color.depth.range(d3.schemeGnBu[((root.height + 1)%10 < 3) ? 3 : (root.height + 1)%10]);
-    // scales.color.size.domain(sizeExtent);
+    var svg = d3.select("body").select("svg");
+    svg.attr("width", config.w);
+    svg.attr("height", config.h);
 
-    // setup radius scale
-    // scales.radius.domain(sizeExtent);
+    var g = svg.append("g");
+    g.attr("id", "plot");
+    g.attr("transform", translate(config.pad, config.pad));
 
-    drawTraditionalStraight("traditional", root.copy());
-    // drawCircularDendrogram("circular_dendrogram", root.copy());
+    drawFromRoot(root);
 }
 
-function drawNodes(g, nodes, depth, raise) {
-  g.selectAll("circle")
+function drawFromRoot(root) {
+    scales.color.depth.domain(d3.range(root.height + 1));
+    scales.color.depth.range(d3.schemeGnBu[((root.height + 1)%10 < 3) ? 3 : (root.height + 1)%10]);
+    drawTraditionalStraight("traditional", root.copy());
+}
+
+function drawNodes(g, nodes, depth, raise, root) {
+
+  var select = g.selectAll("circle")
     .data(nodes)
-    .enter()
+    .attr("r", 8)
+      .attr("cx", x)
+      .attr("cy", y)
+      .attr("id", function(d) { return d.data.name; })
+      .attr("sig", function(d) { return d.data.sig; })
+      .style("fill", function(d) { return scales.color.depth(d.depth); });
+
+  select.raise();
+
+  select.enter()
     .append("circle")
       .attr("r", 8)
       .attr("cx", x)
       .attr("cy", y)
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
-      .attr("class", "node")
+      .attr("class", function(d) { return ((d.depth == 0) ? "root " : "") + "node" })
       .style("fill", function(d) { return scales.color.depth(d.depth); })
-      //.style("fill", "#000")
       .on("mouseover.tooltip", function(d) {
         show_tooltip(g, d3.select(this));
         d3.select(this).classed("selected", true);
@@ -146,26 +142,48 @@ function drawNodes(g, nodes, depth, raise) {
       .on("mouseout.tooltip", function(d) {
         g.select("#tooltip").remove();
         d3.select(this).classed("selected", false);
+      })
+      .on("click", function(d) {
+        g.select("#tooltip").remove();
+        if (d.depth == 0) {
+          var parent = parents.pop();
+          if (parent != null) {
+            drawFromRoot(parent);
+          } else {
+            console.log('parent == null');
+          }
+        } else {
+          var p = [];
+          var pd = d;
+          for (var i = 0; i < d.depth; i++) {
+            p.unshift(pd.parent.copy());
+            pd = pd.parent;
+          }
+          parents = parents.concat(p);
+          drawFromRoot(d);
+        }
       });
+
+  select.exit().remove();
+
 }
 
 function drawLinks(g, links, generator) {
   var paths = g.selectAll("path")
     .data(links)
-    .enter()
+    .attr("d", generator);
+
+  paths.enter()
     .append("path")
     .attr("d", generator)
     .attr("class", "link");
+
+  paths.exit().remove();
 }
 
-function drawTraditionalStraight(id, root) {
-  var svg = d3.select("body").select("#" + id);
-  svg.attr("width", config.w);
-  svg.attr("height", config.h);
+function drawTraditionalStraight(id, root, parent) {
 
-  var g = svg.append("g");
-  g.attr("id", "plot");
-  g.attr("transform", translate(config.pad, config.pad));
+  var g = d3.select('#plot');
 
   // setup node layout generator
   var tree = d3.tree()
@@ -183,7 +201,8 @@ function drawTraditionalStraight(id, root) {
   scales.radius.range([3, 35]);
 
   drawLinks(g, root.links(), straightLine);
-  drawNodes(g, root.descendants(), true, true);
+  drawNodes(g, root.descendants(), true, true, root, parent);
+
 }
 
 function drawCircularDendrogram(id, root) {

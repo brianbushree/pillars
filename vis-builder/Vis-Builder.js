@@ -39,23 +39,23 @@ function buildDataMap(project) {
 
 function buildHierarchyData(project, data_map) {
 
-  let csv_data = [ { 'id': '0', 'sig': null } ];
+  let data = [ { 'id': '0', 'sig': null } ];
   let node = 1;
 
   // connect from root to each method
   async.each(project.data, function(c, callback) {
     async.each(c.methods, function(m, cb) {
 
-      node = buildMethod(csv_data, data_map, m.sig, node, '0');
+      node = buildMethod(data, data_map, m.sig, node, '0');
       cb();
 
     });
     callback();
   });
 
-  console.log(csv_data);
+  console.log(data);
 
-  return csv_data;
+  return data;
 
 }
 
