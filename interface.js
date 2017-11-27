@@ -58,13 +58,8 @@ worker.stdout.on('data', function(data) {
 worker.stderr.on('data', function(data) {
     console.log('stderr: ' + data);
 });
-worker.on('close', function(code) {
-    console.log('closing code: ' + code);
-});
 
 worker.on('message', function (data) {
-
-  console.log(data);
 
   switch(data.type) {
     case 'proj_data':
@@ -73,7 +68,7 @@ worker.on('message', function (data) {
       break;
     case 'vis_data':
       visData = data.data;
-      main.loadWindowResize("web/vis.html", 950, 750);
+      main.loadWindowResize("web/vis.html", 1050, 800);
       break;
     default:
       console.log('ERR: parnet bad event!');

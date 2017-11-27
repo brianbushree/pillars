@@ -1,13 +1,26 @@
 const {ipcRenderer} = require('electron');
 
-// var file = "java8.csv";
+/* Request data from main process */
+var visData = null;
+ipcRenderer.send('data-req');
+ipcRenderer.on('data-res', function (e, data) {
+  data.data.forEach(function(e, i) {
+    e.name = e.id;
+    e = convert(e);
+  });
+  visData = data;
+  callback(null, visData.data); 
+});
 
+function newRoot() {
+  ipcRenderer.send('new_root');
+}
+
+// setup scales
 var scales = {};
-
 scales.color = {};
 scales.color.depth = d3.scaleOrdinal();
-// scales.color.size = d3.scaleSequential(d3.interpolateGnBu);
-
+scales.color.class = d3.scaleOrdinal(d3.schemeCategory20c);
 scales.radius = d3.scaleSqrt();
 
 // accessor functions for x and y
@@ -22,10 +35,13 @@ var line = d3.line()
 
 // configure size, margin, and circle radius
 var config = {
-    w: 900,
-    h: 550,
+    w: 1025,
+    h: 750,
     r: 4,
-    pad: 70
+    tpad: 50,
+    lpad: 300,
+    bpad: 50,
+    rpad: 20
 };
 
 // maximum diameter of circle is minimum dimension
@@ -33,31 +49,10 @@ config.d = Math.min(config.w, config.h);
 
 var parents = [];
 
-// d3.csv(file, convert, callback);
-
-let visData = null;
-
-ipcRenderer.send('data-req');
-ipcRenderer.on('data-res', function (e, data) {
-  console.log(data);
-  data.data.forEach(function(e, i) {
-    e.size = '0';
-    e.name = e.id;
-    e = convert(e);
-  });
-  visData = data;
-  callback(null, visData.data); 
-});
-
-function newRoot() {
-  ipcRenderer.send('new_root');
-}
-
 function convert(row) {
   row.id = row.name;
   var parts = row.name.split(".")
   row.name = parts[parts.length - 1];
-  row.size = +row.size;
   return row;
 }
 
@@ -87,11 +82,11 @@ function callback(error, data) {
       });
 
     // convert csv into hierarchy
-    var real_root = stratify(data);
-    var root = real_root;
+    var realroot = stratify(data);
+    var root = realroot;
 
     root = selectRoot(root, visData.root);
-    console.log("real-root:", real_root);
+    console.log("realroot:", realroot);
 
     var svg = d3.select("body").select("svg");
     svg.attr("width", config.w);
@@ -99,19 +94,37 @@ function callback(error, data) {
 
     var g = svg.append("g");
     g.attr("id", "plot");
-    g.attr("transform", translate(config.pad, config.pad));
+    g.attr("transform", translate(config.lpad, config.tpad));
+
+    var leg = svg.append("g");
+    leg.attr("id", "legend");
+    leg.attr("transform", translate(0, 50));
+
+
+    // count classes
+    var m = {};
+    root.each(function(d) {
+      if (!visData.map[d.data.sig]) {
+        m['none'] = true;
+      } else {
+        m[visData.map[d.data.sig].parent] = true;
+      }
+    });
+    scales.color.class.domain(Object.keys(m).length);
 
     drawFromRoot(root);
 }
 
-function drawFromRoot(root) {
+function drawFromRoot(root, data) {
     scales.color.depth.domain(d3.range(root.height + 1));
     scales.color.depth.range(d3.schemeGnBu[((root.height + 1)%10 < 3) ? 3 : (root.height + 1)%10]);
+
     drawTraditionalStraight("traditional", root.copy());
 }
 
 function drawNodes(g, nodes, depth, raise, root) {
 
+  // update
   var select = g.selectAll("circle")
     .data(nodes)
     .attr("r", 8)
@@ -119,10 +132,19 @@ function drawNodes(g, nodes, depth, raise, root) {
       .attr("cy", y)
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
-      .style("fill", function(d) { return scales.color.depth(d.depth); });
+      .style("fill", function(d) {
+         var c;
+         if (!visData.map[d.data.sig]) {
+            c = 'none';
+         } else {
+            c = visData.map[d.data.sig].parent;
+         }
+         return scales.color.class(c); 
+      });
 
   select.raise();
 
+  // enter
   select.enter()
     .append("circle")
       .attr("r", 8)
@@ -130,8 +152,17 @@ function drawNodes(g, nodes, depth, raise, root) {
       .attr("cy", y)
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
-      .attr("class", function(d) { return ((d.depth == 0) ? "root " : "") + "node" })
-      .style("fill", function(d) { return scales.color.depth(d.depth); })
+      .attr("class", function(d)
+        { return ((d.depth == 0) ? "root " : "") + "node" })
+      .style("fill", function(d) {
+         var c;
+         if (!visData.map[d.data.sig]) {
+            c = 'none';
+         } else {
+            c = visData.map[d.data.sig].parent;
+         }
+         return scales.color.class(c); 
+      })
       .on("mouseover.tooltip", function(d) {
         show_tooltip(g, d3.select(this));
         d3.select(this).classed("selected", true);
@@ -149,8 +180,6 @@ function drawNodes(g, nodes, depth, raise, root) {
           var parent = parents.pop();
           if (parent != null) {
             drawFromRoot(parent);
-          } else {
-            console.log('parent == null');
           }
         } else {
           var p = [];
@@ -164,31 +193,82 @@ function drawNodes(g, nodes, depth, raise, root) {
         }
       });
 
+  // exit
   select.exit().remove();
 
 }
 
 function drawLinks(g, links, generator) {
+
+  // update
   var paths = g.selectAll("path")
     .data(links)
     .attr("d", generator);
 
+  // enter
   paths.enter()
     .append("path")
     .attr("d", generator)
     .attr("class", "link");
 
+  // exit
   paths.exit().remove();
+
+}
+
+function drawLegend(g, root) {
+  var m = {};
+  root.each(function(d) {
+    if (!visData.map[d.data.sig]) {
+      m['none'] = true;
+    } else {
+      m[visData.map[d.data.sig].parent] = true;
+    }
+  });
+
+  var labels = g.selectAll("g.label")
+    .data(Object.keys(m))
+    .attr("transform", function(d,i) { return translate(10, 10+(20*i++)); });
+
+  labels.select("rect")
+    .attr("fill", function(d) {
+      return scales.color.class(d);
+    });
+
+  labels.select("text")
+    .text(function(d) { return d; });
+
+
+  var gs = labels.enter()
+    .append("g")
+    .attr("class", "label")
+    .attr("transform", function(d,i) { return translate(10, 10+(20*i++)); });
+
+  gs.append("rect")
+    .attr("width", 10)
+    .attr("height", 10)
+    .attr("fill", function(d) {
+     return scales.color.class(d);
+    });
+
+  gs.append("text")
+      .attr("dx", 12)
+      .attr("dy", 10)
+      .text(function(d) { return d; });
+
+  labels.exit().remove();
+
 }
 
 function drawTraditionalStraight(id, root, parent) {
 
   var g = d3.select('#plot');
+  var leg = d3.select('#legend');
 
   // setup node layout generator
   var tree = d3.tree()
-    .size([ config.w - 2 * config.pad,
-            config.h - 2 * config.pad]);
+    .size([ config.w - config.rpad - config.lpad,
+            config.h - config.tpad - config.bpad  ]);
 
   // run layout to calculate x, y attributes
   tree(root);
@@ -202,49 +282,5 @@ function drawTraditionalStraight(id, root, parent) {
 
   drawLinks(g, root.links(), straightLine);
   drawNodes(g, root.descendants(), true, true, root, parent);
-
-}
-
-function drawCircularDendrogram(id, root) {
-  var svg = d3.select("body").select("#" + id);
-  svg.attr("width", config.w);
-  svg.attr("height", config.h);
-
-  var g = svg.append("g");
-  g.attr("id", "plot");
-
-  // for polar coordinates, easier if treat (0, 0) as center
-  g.attr("transform", translate(config.w / 2, config.h / 2));
-
-  // setup node layout generator
-  // let x be theta (in degrees) and y be radial
-  var cluster = d3.cluster().size([360, (config.d / 2) - config.pad]);
-
-  // run layout to calculate x, y attributes
-  cluster(root);
-
-  // x, y are in polar coordinates
-  // must convert back into cartesian coordinates
-  root.each(function(d) {
-    d.theta = d.x;
-    d.radial = d.y;
-
-    var point = toCartesian(d.radial, d.theta);
-    d.x = point.x;
-    d.y = point.y;
-  });
-
-  // create hacky v4 curved link generator for radial
-  var curvedLine = function(d) {
-    var mid = (d.source.radial + d.target.radial) / 2;
-    var v0 = toCartesian(mid, d.source.theta);
-    var v1 = toCartesian(mid, d.target.theta);
-    return "M" + d.source.x + "," + d.source.y
-      + "C" + v0.x + "," + v0.y
-      + " " + v1.x + "," + v1.y
-      + " " + d.target.x + "," + d.target.y;
-  };
-
-  drawLinks(g, root.links(), curvedLine);
-  drawNodes(g, root.descendants(), true, true);
+  drawLegend(leg, root);
 }

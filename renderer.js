@@ -27,8 +27,6 @@ function start_loading() {
 }
 
 ipcRenderer.on('methods-res', function(e, sigs) {
-	console.log(sigs);
-	// clearInterval(loading);
 	add_methods(sigs);
 });
 
@@ -149,6 +147,10 @@ function add_files_to_elem(parentID, data, offset) {
 
 	let elem;
 	let a;
+
+	if (!data) {
+		return;
+	}
 
 	data.forEach(function(e, i) {
 		elem = document.createElement('p');

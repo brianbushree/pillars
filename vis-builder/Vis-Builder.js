@@ -33,6 +33,29 @@ function buildDataMap(project) {
     callback();
   });
 
+  // check all callees
+  async.each(project.data, function(c, callback) {
+    async.each(c.methods, function(m, cb) {
+
+      data_map[m.sig].callees.forEach(function(e) {
+
+        if (!data_map[e]) {
+
+          data_map[e] = {};
+          let t = e.split('(')[0];
+          data_map[e].parent = t.substring(0, t.lastIndexOf('.'));
+          data_map[e].callees = [];
+
+        }
+
+      });
+
+      cb();
+
+    });
+    callback();
+  });
+
   return data_map;
 
 }

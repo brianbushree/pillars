@@ -75,8 +75,8 @@ function loadWindowResize(file, w, h) {
   mainWindow.setBounds({
     x: 350,
     y: 200,
-    width: 950,
-    height: 750
+    width: w,
+    height: h
   });
 }
 module.exports.loadWindowResize = loadWindowResize;

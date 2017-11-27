@@ -120,6 +120,7 @@ function makeClass(file) {
     method.returnType = m[8] ? m[8] : "(constructor)";
     method.args = m[10] ? m[10].split(/, /g) : [];
     method.callees = [];
+    method.parent = c.name;
 
     method.sig = c.name + '.' + method.name + '(';
     method.args.forEach(function(arg, i) {

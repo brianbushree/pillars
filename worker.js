@@ -2,10 +2,7 @@ const projectMaker = require('./ProjectMaker.js');
 const visBuilder = require('./vis-builder/Vis-Builder.js');
 
 process.on('message', function(data) {
-	console.log(data);
-
 	exec(data);
-
 });
 
 function exec(data) {
@@ -18,9 +15,6 @@ function exec(data) {
 			    }
 			   	process.send({ type: 'proj_data', data: data });
 			});
-
-			//process.send({ type: 'proj_data', data: 'test' });
-
 			break;
 
 		case 'vis_data':
