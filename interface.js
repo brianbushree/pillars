@@ -40,8 +40,8 @@ ipcMain.on('load_project', function (event, data) {
   worker.send({ type: 'proj_data', data: data, appPath: app.getAppPath() });
 });
 
-ipcMain.on('methods-req', function (event, data) {
-  event.sender.send('methods-res', hierarchyParser.getAllSigs(project.data));
+ipcMain.on('classes-req', function (event, data) {
+  event.sender.send('classes-res', hierarchyParser.getClasses(project.data));
 });
 
 ipcMain.on('root-select', function (event, root) {

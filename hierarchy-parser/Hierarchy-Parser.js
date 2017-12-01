@@ -87,19 +87,22 @@ function getAllNames(data) {
 }
 module.exports.getAllNames = getAllNames;
 
-function getAllSigs(data) {
-  let sigs = [];
+function getClasses(data) {
+  let classes = [];
+  let cl;
   async.eachSeries(data, function(c, callback) {
+    cl = { 'name': c.name, 'sigs': [] };
     async.eachSeries(c.methods, function(m, cb) {
-      sigs.push(m.sig);
+      cl.sigs.push(m.sig);
       cb();
     });
+    classes.push(cl);
     callback();
   });
 
-  return sigs;
+  return classes;
 }
-module.exports.getAllSigs = getAllSigs;
+module.exports.getClasses = getClasses;
 
 /**
 *  Extract direct callees from CHP output.

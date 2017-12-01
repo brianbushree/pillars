@@ -3,22 +3,24 @@
   <head>
     <meta charset="UTF-8">
     <title>Select Root</title>
+    <link rel="stylesheet" type="text/css" href="window.css">
   </head>
   <body style="-webkit-app-region: drag">
 
     <script src="../renderer.js"></script>
 
-    <h1>Select Root Method</h1>
+    <h1>Select Root Method or Class</h1>
 
     <script type="text/javascript">
-      get_methods();
+      get_classes();
     </script>
 
-    <div id="methods">
+    <button autofocus onclick="submit_root()">select</button>
+
+    <div id="classes">
     </div>
 
     <br/>
-    <button autofocus onclick="select_root()">select</button>
 
   </body>
 </html>

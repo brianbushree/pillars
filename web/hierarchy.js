@@ -29,7 +29,7 @@ var y = function(d) { return d.y; };
 
 // normal line generator
 var line = d3.line()
-  .curve(d3.curveLinear)
+  //.curve(d3.curveLinear)
   .x(x)
   .y(y);
 
@@ -56,11 +56,33 @@ function convert(row) {
   return row;
 }
 
-function selectRoot(root, sig) {
-  for (let i = 0; i < root.children.length; i++) {
-    if (root.children[i].data.sig == visData.root) {
-      root = root.children[i];
-      break;
+function selectRoot(root, sel) {
+  console.log('sel:', sel);
+  if (!sel) {
+    return root;
+  }
+
+  if (sel.type == 'class') {
+    // set new height
+    let newCh = [];
+    let newHeight = 0;
+    for (let i = 0; i < root.children.length; i++) {
+      if (visData.map[root.children[i].data.sig] &&visData.map[root.children[i].data.sig].parent == sel.value) {
+        newCh.push(root.children[i]);
+
+        if (newHeight < root.children[i].height) {
+          newHeight = root.children[i].height;
+        }
+      }
+    }
+    root.children = newCh;
+    root.height = newHeight;
+  } else {
+    for (let i = 0; i < root.children.length; i++) {
+      if (root.children[i].data.sig == sel.value) {
+        root = root.children[i];
+        break;
+      }
     }
   }
   return root;
@@ -83,10 +105,9 @@ function callback(error, data) {
 
     // convert csv into hierarchy
     var realroot = stratify(data);
-    var root = realroot;
-
-    root = selectRoot(root, visData.root);
+    var root = selectRoot(realroot.copy(), visData.root);
     console.log("realroot:", realroot);
+    console.log("root", root);
 
     var svg = d3.select("body").select("svg");
     svg.attr("width", config.w);
@@ -104,18 +125,16 @@ function callback(error, data) {
     // count classes
     var m = {};
     root.each(function(d) {
-      if (!visData.map[d.data.sig]) {
-        m['none'] = true;
-      } else {
+      if (d.data.sig && visData.map[d.data.sig]) {
         m[visData.map[d.data.sig].parent] = true;
       }
     });
-    scales.color.class.domain(Object.keys(m).length);
+    scales.color.class.domain(Object.keys(m));
 
     drawFromRoot(root);
 }
 
-function drawFromRoot(root, data) {
+function drawFromRoot(root) {
     scales.color.depth.domain(d3.range(root.height + 1));
     scales.color.depth.range(d3.schemeGnBu[((root.height + 1)%10 < 3) ? 3 : (root.height + 1)%10]);
 
@@ -217,11 +236,10 @@ function drawLinks(g, links, generator) {
 }
 
 function drawLegend(g, root) {
+
   var m = {};
   root.each(function(d) {
-    if (!visData.map[d.data.sig]) {
-      m['none'] = true;
-    } else {
+    if (visData.map[d.data.sig]) {
       m[visData.map[d.data.sig].parent] = true;
     }
   });
@@ -264,14 +282,30 @@ function drawTraditionalStraight(id, root, parent) {
 
   var g = d3.select('#plot');
   var leg = d3.select('#legend');
+  var nodes = null;
+  var links = null;
 
   // setup node layout generator
   var tree = d3.tree()
+    .separation(function separation(a, b) {
+      return ((a.parent == root) && (b.parent == root)) ? 10 : .6;
+    })
     .size([ config.w - config.rpad - config.lpad,
             config.h - config.tpad - config.bpad  ]);
 
   // run layout to calculate x, y attributes
   tree(root);
+
+  // avoid root node if null
+  if (!root.data.sig) {
+    nodes = root.descendants().slice(1);
+    links = root.links().filter(function (d) {
+      return d.source.depth != 0;
+    });
+  } else {
+    nodes = root.descendants();
+    links = root.links();
+  }
 
   // create line generator
   var straightLine = function(d) {
@@ -280,7 +314,7 @@ function drawTraditionalStraight(id, root, parent) {
 
   scales.radius.range([3, 35]);
 
-  drawLinks(g, root.links(), straightLine);
-  drawNodes(g, root.descendants(), true, true, root, parent);
+  drawLinks(g, links, straightLine);
+  drawNodes(g, nodes, true, true, root, parent);
   drawLegend(leg, root);
 }

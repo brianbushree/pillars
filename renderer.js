@@ -26,49 +26,70 @@ function start_loading() {
 	}, 1000);
 }
 
-ipcRenderer.on('methods-res', function(e, sigs) {
-	add_methods(sigs);
+ipcRenderer.on('classes-res', function(e, classes) {
+	add_classes(classes);
 });
 
-function add_methods(sigs) {
-	let cont = document.getElementById('methods');
-	let elem;
+function add_classes(classes) {
+	let cont = document.getElementById('classes');
+	let celem;
+	let melem;
 	let a;
 
-	sigs.forEach(function(e, i) {
+	classes.forEach(function(c, i) {
 
-		elem = document.createElement('p');
-		elem.setAttribute('class', 'method')
-		elem.appendChild(document.createTextNode(e + ' '));
+		celem = document.createElement('p');
+		celem.setAttribute('class', 'class');
+
+		celem.appendChild(document.createTextNode(c.name + ' '));
 		a = document.createElement('a');
 		a.appendChild(document.createTextNode('select'));
 		a.setAttribute('href', '#');
-		a.setAttribute('onclick', 'select_method(this);  return false;');
+		a.setAttribute('onclick', 'select_root(this);  return false;');
 
+		celem.appendChild(a);
+		cont.appendChild(celem);
 
-		elem.appendChild(a);
-		cont.appendChild(elem);
+		c.sigs.forEach(function(m, i) {
+
+			elem = document.createElement('p');
+			elem.setAttribute('class', 'method');
+			elem.setAttribute('style', 'text-indent: 35px;');
+			elem.appendChild(document.createTextNode(m + ' '));
+			a = document.createElement('a');
+			a.appendChild(document.createTextNode('select'));
+			a.setAttribute('href', '#');
+			a.setAttribute('onclick', 'select_root(this);  return false;');
+
+			elem.appendChild(a);
+			cont.appendChild(elem);
+
+		});
 
 	});
+
 }
 
-function select_method(link) {
+function select_root(link) {
 	let parent = link.parentNode;
 	let cls;
-	parent.setAttribute('style', 'color: red;');
-	deselect_all_methods(parent);
+	deselect_all_roots(parent);
 	add_class(parent, 'selected');
 }
 
-function deselect_all_methods(parent) {
+function deselect_all_roots(parent) {
 
-	let all = document.querySelectorAll('.method.selected');
+	let all = document.querySelectorAll('.selected');
 
 	for (let e of all) {
-		remove_class(e, 'selected')
-		e.setAttribute('style', '');
+		remove_class(e, 'selected');
 	}
 
+}
+
+function has_class(e, name) {
+	let cls = e.getAttribute('class').split(' ');
+	return cls.includes(name);
 }
 
 function add_class(e, name) {
@@ -88,20 +109,28 @@ function remove_class(e, name) {
 	e.setAttribute('class', cls.join(' '));
 }
 
-function select_root() {
+function submit_root() {
 
-	let m = document.querySelector('.method.selected');
+	let sel = document.querySelector('.selected');
+	let send = { type: '', value: ''};
 
-	if (m) {
-		ipcRenderer.send('root-select', m.textContent.substring(0, m.textContent.lastIndexOf(' ')));
+	if (sel) {
+		if (has_class(sel, 'class')) {
+			send.type = 'class';
+		} else {
+			send.type = 'method';
+		}
+		send.value = sel.textContent.substring(0, sel.textContent.lastIndexOf(' '));
+
+		ipcRenderer.send('root-select', send);
 	} else {
 		alert('no root selected - showing all');
 		ipcRenderer.send('root-select', null);
 	}
 }
 
-function get_methods() {
-	ipcRenderer.send('methods-req');
+function get_classes() {
+	ipcRenderer.send('classes-req');
 }
 
 function start() {
