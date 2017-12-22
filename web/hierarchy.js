@@ -288,7 +288,7 @@ function drawTraditionalStraight(id, root, parent) {
   // setup node layout generator
   var tree = d3.tree()
     .separation(function separation(a, b) {
-      return ((a.parent == root) && (b.parent == root)) ? 10 : .6;
+      return ((a.parent == root) && (b.parent == root)) ? 10 : 5;
     })
     .size([ config.w - config.rpad - config.lpad,
             config.h - config.tpad - config.bpad  ]);
