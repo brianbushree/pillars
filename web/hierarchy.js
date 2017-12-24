@@ -1,37 +1,18 @@
 const {ipcRenderer} = require('electron');
 
-/* Request data from main process */
 var visData = null;
+
+// request data from main process
 ipcRenderer.send('data-req');
-ipcRenderer.on('data-res', function (e, data) {
-  data.data.forEach(function(e, i) {
-    e.name = e.id;
-    e = convert(e);
-  });
+ipcRenderer.on('data-res', function (event, data) {
   visData = data;
-  callback(null, visData.data); 
+  render(data);
 });
 
+// select a new root
 function newRoot() {
   ipcRenderer.send('new_root');
 }
-
-// setup scales
-var scales = {};
-scales.color = {};
-scales.color.depth = d3.scaleOrdinal();
-scales.color.class = d3.scaleOrdinal(d3.schemeCategory20c);
-scales.radius = d3.scaleSqrt();
-
-// accessor functions for x and y
-var x = function(d) { return d.x; };
-var y = function(d) { return d.y; };
-
-// normal line generator
-var line = d3.line()
-  //.curve(d3.curveLinear)
-  .x(x)
-  .y(y);
 
 // configure size, margin, and circle radius
 var config = {
@@ -47,7 +28,36 @@ var config = {
 // maximum diameter of circle is minimum dimension
 config.d = Math.min(config.w, config.h);
 
+var svg = d3.select("body").select("svg");
+
+// dynamic globals
+var hor = false;
 var parents = [];
+var currentRoot = null;
+
+// setup scales
+var scales = {};
+scales.color = {};
+scales.color.class = d3.scaleOrdinal(d3.schemeCategory20c);
+
+// accessor functions for x and y
+var x = function(d) { return d.x; };
+var y = function(d) { return d.y; };
+
+function render(data) {
+  // convert
+  data.data.forEach(function(e, i) {
+    e.name = e.id;
+    e = convert(e);
+  });
+
+  callback(null, visData.data); 
+}
+
+function horToggle() {
+  hor = !hor;
+  drawFromRoot(currentRoot);
+}
 
 function convert(row) {
   row.id = row.name;
@@ -57,34 +67,42 @@ function convert(row) {
 }
 
 function selectRoot(root, sel) {
-  console.log('sel:', sel);
+
   if (!sel) {
     return root;
   }
 
   if (sel.type == 'class') {
-    // set new height
-    let newCh = [];
+
+    let newChildren = [];
     let newHeight = 0;
+
+    // filter by class & set new height
     for (let i = 0; i < root.children.length; i++) {
       if (visData.map[root.children[i].data.sig] &&visData.map[root.children[i].data.sig].parent == sel.value) {
-        newCh.push(root.children[i]);
+        newChildren.push(root.children[i]);
 
         if (newHeight < root.children[i].height) {
           newHeight = root.children[i].height;
         }
       }
     }
-    root.children = newCh;
+
+    root.children = newChildren;
     root.height = newHeight;
+
   } else {
+
+    // find method by sig
     for (let i = 0; i < root.children.length; i++) {
       if (root.children[i].data.sig == sel.value) {
         root = root.children[i];
         break;
       }
     }
+
   }
+
   return root;
 }
 
@@ -109,7 +127,6 @@ function callback(error, data) {
     console.log("realroot:", realroot);
     console.log("root", root);
 
-    var svg = d3.select("body").select("svg");
     svg.attr("width", config.w);
     svg.attr("height", config.h);
 
@@ -121,24 +138,21 @@ function callback(error, data) {
     leg.attr("id", "legend");
     leg.attr("transform", translate(0, 50));
 
-
     // count classes
-    var m = {};
+    var classes = {};
     root.each(function(d) {
       if (d.data.sig && visData.map[d.data.sig]) {
-        m[visData.map[d.data.sig].parent] = true;
+        classes[visData.map[d.data.sig].parent] = true;
       }
     });
-    scales.color.class.domain(Object.keys(m));
+    scales.color.class.domain(Object.keys(classes));
 
     drawFromRoot(root);
 }
 
 function drawFromRoot(root) {
-    scales.color.depth.domain(d3.range(root.height + 1));
-    scales.color.depth.range(d3.schemeGnBu[((root.height + 1)%10 < 3) ? 3 : (root.height + 1)%10]);
-
-    drawTraditionalStraight("traditional", root.copy());
+  currentRoot = root;
+  drawTraditionalStraight("traditional", root.copy());
 }
 
 function drawNodes(g, nodes, depth, raise, root) {
@@ -147,8 +161,8 @@ function drawNodes(g, nodes, depth, raise, root) {
   var select = g.selectAll("circle")
     .data(nodes)
     .attr("r", 8)
-      .attr("cx", x)
-      .attr("cy", y)
+      .attr("cx", ((!hor) ? x : y))
+      .attr("cy", ((!hor) ? y : x))
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
       .style("fill", function(d) {
@@ -167,8 +181,8 @@ function drawNodes(g, nodes, depth, raise, root) {
   select.enter()
     .append("circle")
       .attr("r", 8)
-      .attr("cx", x)
-      .attr("cy", y)
+      .attr("cx", ((!hor) ? x : y))
+      .attr("cy", ((!hor) ? y : x))
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
       .attr("class", function(d)
@@ -237,15 +251,17 @@ function drawLinks(g, links, generator) {
 
 function drawLegend(g, root) {
 
-  var m = {};
+  // get all classes
+  var classes = {};
   root.each(function(d) {
     if (visData.map[d.data.sig]) {
-      m[visData.map[d.data.sig].parent] = true;
+      classes[visData.map[d.data.sig].parent] = true;
     }
   });
 
+  // update
   var labels = g.selectAll("g.label")
-    .data(Object.keys(m))
+    .data(Object.keys(classes))
     .attr("transform", function(d,i) { return translate(10, 10+(20*i++)); });
 
   labels.select("rect")
@@ -257,6 +273,7 @@ function drawLegend(g, root) {
     .text(function(d) { return d; });
 
 
+  // enter
   var gs = labels.enter()
     .append("g")
     .attr("class", "label")
@@ -274,24 +291,28 @@ function drawLegend(g, root) {
       .attr("dy", 10)
       .text(function(d) { return d; });
 
+  // exit
   labels.exit().remove();
 
 }
 
 function drawTraditionalStraight(id, root, parent) {
 
-  var g = d3.select('#plot');
-  var leg = d3.select('#legend');
+  var g = svg.select('#plot');
+  var leg = svg.select('#legend');
   var nodes = null;
   var links = null;
 
+  var w = config.w - config.rpad - config.lpad;
+  var h = config.h - config.tpad - config.bpad;
+
   // setup node layout generator
   var tree = d3.tree()
+    .size([ ((!hor) ? w : h),
+            ((!hor) ? h : w)  ])
     .separation(function separation(a, b) {
       return ((a.parent == root) && (b.parent == root)) ? 10 : 5;
-    })
-    .size([ config.w - config.rpad - config.lpad,
-            config.h - config.tpad - config.bpad  ]);
+    });
 
   // run layout to calculate x, y attributes
   tree(root);
@@ -307,12 +328,15 @@ function drawTraditionalStraight(id, root, parent) {
     links = root.links();
   }
 
+  // normal line generator
+  var line = d3.line()
+    .x(((!hor) ? x : y))
+    .y(((!hor) ? y : x));
+
   // create line generator
   var straightLine = function(d) {
     return line([d.source, d.target]);
   }
-
-  scales.radius.range([3, 35]);
 
   drawLinks(g, links, straightLine);
   drawNodes(g, nodes, true, true, root, parent);
