@@ -2,7 +2,7 @@
 *
 *  Vis-Builder
 *
-*     This builds data to input to the visualization. 
+*     This builds/filters data to input to the visualization. 
 */
 const async = require('async');
 
@@ -10,7 +10,7 @@ function buildVisData(project, root) {
 
   let vis_data = {};
   vis_data['map'] = buildDataMap(project);
-  vis_data['data'] = buildHierarchyData(project, vis_data['map']);
+  vis_data['data'] = buildHierarchyData(project);
   vis_data['root'] = root;
   console.log(vis_data['data']);
 
@@ -34,104 +34,132 @@ function buildDataMap(project) {
   });
 
   // check all callees
-  async.each(project.data, function(c, callback) {
-    async.each(c.methods, function(m, cb) {
-
-      data_map[m.sig].callees.forEach(function(e) {
-
-        if (!data_map[e]) {
-
-          data_map[e] = {};
-          let t = e.split('(')[0];
-          data_map[e].parent = t.substring(0, t.lastIndexOf('.'));
-          data_map[e].callees = [];
-
-        }
-
-      });
-
-      cb();
-
-    });
-    callback();
-  });
+  addToMap(data_map, project.profile[0]);
 
   return data_map;
 
 }
 
-function buildHierarchyData(project, data_map) {
+function addToMap(data_map, elem) {
 
-  let data = [ { 'id': '0', 'sig': null } ];
-  let node = 1;
+  if (!data_map[elem.sig]) {
 
-  // connect from root to each method
-  async.each(project.data, function(c, callback) {
-    async.each(c.methods, function(m, cb) {
+    data_map[elem.sig] = {};
+    let t = elem.sig.split('(')[0];
+    data_map[elem.sig].parent = t.substring(0, t.lastIndexOf('.'));
 
-      node = buildMethod(data, data_map, m.sig, node, '0');
-      cb();
+  }
 
-    });
-    callback();
+  elem.callees.forEach(function(e, i) {
+    addToMap(data_map, e);
   });
 
-  console.log(data);
+}
 
+function buildHierarchyData(project) {
+
+  let data = [];
+  let node = 0;
+
+
+  node = buildMethod(data, project.profile[0], node, '');
+  console.log(data);
   return data;
 
 }
 
-function buildMethod(csv_data, data_map, sig, node, prefix) {
+// TODO rewrite with new data format
+function buildMethod(csv_data, elem, node, prefix) {
 
-  prefix += '.' + (node++);
-  csv_data.push({ 'id': prefix, 'sig': sig });
+  prefix += ((node != 0) ? '.' : '') + (node++);
+  csv_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time });
 
-  if (!data_map[sig]) {
 
-    console.log("ERROR: no method-entry; " + sig);
+  let out = [];
+  let temp = [];
+  elem.callees.forEach(function(call, i) {
 
-  } else {
+    if (call.sig == 'Thread.start()') {
 
-    data_map[sig].callees.forEach(function(e, i) {
+      // We want to see all created threads
+      node = buildMethod(csv_data, call, node, prefix);
 
-      if (reursionCheck(data_map, [], e)) {
+    } else {
 
-        console.log("Recursion!!! : " + e);
+      // avoid looped calls!
+      if (!includesSig(out, call.sig)) {
+
+        if (temp.length != 0) {
+          temp.forEach(function(c) {
+            out.push(c);
+            node = buildMethod(csv_data, c, node, prefix);
+          });
+          temp.length = 0;
+        }
+
+        out.push(call);
+        node = buildMethod(csv_data, call, node, prefix);
 
       } else {
 
-        node = buildMethod(csv_data, data_map, e, node, prefix);
+        temp.push(call);
+
+        if (arrayEquals(temp, out.slice(out.length - temp.length, out.length))) {
+
+          console.log('loop!', temp);
+          temp.length = 0;
+
+        }
 
       }
+    }
 
-    });
-
-  }
+  });
 
   return node;
 }
 
-function reursionCheck(data_map, trace, check) {
+function includesSig(arr, sig) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].sig == sig) {
+      return true;
+    }
+  }
+  return false;
+}
 
-  if (trace.includes(check)) {
+function arrayEquals(a, b) {
+  if (a.length == b.length) {
+    for (let i = 0; i < a.length; i++) {
+      if (a[i].sig != b[i].sig) {
+        return false;
+      }
+    }
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function reursionCheck(trace, elem) {
+
+  // We want to see all created threads
+  if (elem.sig == 'Thread.start()') {
+    return false;
+  } 
+
+  if (trace.includes(elem.sig)) {
 
     return true;
 
   } else {
 
-    trace.push(check);
+    trace.push(elem.sig);
 
-    if (data_map[check]) {
-      for (let i = 0; i < data_map[check].callees.length; i++) {
-        if (reursionCheck(data_map, trace.slice(), data_map[check].callees[i])) {
-          return true;
-        }
+    for (let i = 0; i < elem.callees.length; i++) {
+      if (reursionCheck(trace.slice(), elem.callees[i])) {
+        return true;
       }
-    } else {
-
-      console.log("ERROR: no method-entry; " + check);
-
     }
 
   }

@@ -54,10 +54,6 @@ function createWindow() {
   mainWindow.on('closed', function () {
     mainWindow = null
   });
-
-  /* eventually trigger onClick() 
-      and add to renderer.js     */ 
-  // projectMaker.loadProject();
 }
 
 function loadWindow(file) {

@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const javapParser = require('./javap-parser/Javap-Parser.js');
-const hierarchyParser = require('./hierarchy-parser/Hierarchy-Parser.js');
+const profiler = require('./profiler/Profiler.js');
 
 /**
  *  Load a project into application
@@ -18,15 +18,27 @@ function loadProject(project, appPath, callback) {
     project.src = cleanSrcDirs(project.src);
     project.classpath = cleanClasspath(project.classpath, appPath);
 
+    // Run javap parser
     javapParser.parseAsync(project.class_dirs, function(err, res) {
       project.data = res;
-      project.data = hierarchyParser.runHierarchyParser(project, appPath);
-      printClasses(project.data);
-      callback(null, project);
+
+      // Run Profiler
+      profiler.runHierarchyParser(project, appPath,
+        function(err, data) {
+
+          project['profile'] = data;
+          printClasses(project.data);
+
+          // TODO decide if stopping before building vis_data is necessary
+
+          callback(err, project);
+
+      });
+
     });
 
 }
-module.exports.loadProject = loadProject
+module.exports.loadProject = loadProject;
 
 
 function cleanClassDirs(dirs) {
