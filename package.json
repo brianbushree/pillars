@@ -8,10 +8,10 @@
   },
   "repository": "https://github.com/brianbushree/pillars",
   "devDependencies": {
-    "electron": "~1.6.2"
+    "electron": "^1.6.15"
   },
   "dependencies": {
-    "async": "^2.5.0",
+    "async": "^2.6.0",
     "ipc": "0.0.1"
   }
 }
