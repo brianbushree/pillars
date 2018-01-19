@@ -23,7 +23,7 @@ function loadProject(project, appPath, callback) {
       project.data = res;
 
       // Run Profiler
-      profiler.runHierarchyParser(project, appPath,
+      profiler.runProfiler(project, appPath,
         function(err, data) {
 
           project['profile'] = data;

@@ -30,6 +30,31 @@
     <div id="proj-classpath">
     </div>
 
+    <label>Executable JAR</label>
+    <button onclick="jar_prompt()">select</button>
+    <br/>
+
+    <div id="proj-jar">
+    </div>
+
+    <label>Runtime Args</label>
+    <br/>
+    <input type="text" id="runarg" name="runarg" required>
+    <button onclick="runarg_enter()">select</button>
+    <br/>
+
+    <div id="proj-runargs">
+    </div>
+
+    <label>Packages</label>
+    <br/>
+    <input type="text" id="package" name="package" required>
+    <button onclick="package_enter()">select</button>
+    <br/>
+
+    <div id="proj-packages">
+    </div>
+
     <br/>
     <button onclick="make_project(project)">load</button>
 

@@ -39,6 +39,7 @@ var currentRoot = null;
 var scales = {};
 scales.color = {};
 scales.color.class = d3.scaleOrdinal(d3.schemeCategory20c);
+scales.radius = d3.scaleSqrt().range([6, 25]);
 
 // accessor functions for x and y
 var x = function(d) { return d.x; };
@@ -154,7 +155,23 @@ function callback(error, data) {
 
 function drawFromRoot(root) {
   currentRoot = root;
+  scales.radius.domain(getTimeDomain(root));
   drawTraditionalStraight("traditional", root.copy());
+}
+
+function getTimeDomain(root) {
+  let min = null;
+  let max = null;
+  root.each(function (e) {
+    if (!min || e.data.time < min) {
+      min = e.data.time;
+    }
+    if (!max || e.data.time > max) {
+      max = e.data.time;
+    }
+  });
+  console.log([min, max]);
+  return [min, max];
 }
 
 function drawNodes(g, nodes, depth, raise, root) {
@@ -162,11 +179,13 @@ function drawNodes(g, nodes, depth, raise, root) {
   // update
   var select = g.selectAll("circle")
     .data(nodes)
-    .attr("r", 8)
       .attr("cx", ((!hor) ? x : y))
       .attr("cy", ((!hor) ? y : x))
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
+      .attr("r", function(d) {
+        return scales.radius(d.data.time);
+      })
       .style("fill", function(d) {
          var c;
          if (!visData.map[d.data.sig]) {
@@ -182,13 +201,16 @@ function drawNodes(g, nodes, depth, raise, root) {
   // enter
   select.enter()
     .append("circle")
-      .attr("r", 8)
       .attr("cx", ((!hor) ? x : y))
       .attr("cy", ((!hor) ? y : x))
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
+      .attr("time", function(d) { return d.data.time; })
       .attr("class", function(d)
         { return ((d.depth == 0) ? "root " : "") + "node" })
+      .attr("r", function(d) {
+        return scales.radius(d.data.time);
+      })
       .style("fill", function(d) {
          var c;
          if (!visData.map[d.data.sig]) {

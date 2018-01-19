@@ -41,15 +41,19 @@ ipcMain.on('load_new', function (event) {
 });
 
 ipcMain.on('class_prompt', function (event) {
-  event.sender.send('class_rec', get_dirs());
+  event.sender.send('class_res', get_dirs());
 });
 
 ipcMain.on('src_prompt', function (event) {
-  event.sender.send('src_rec', get_dirs());
+  event.sender.send('src_res', get_dirs());
 });
 
 ipcMain.on('classpath_prompt', function (event) {
-  event.sender.send('classpath_rec', get_paths());
+  event.sender.send('classpath_res', get_paths());
+});
+
+ipcMain.on('jar_prompt', function (event) {
+  event.sender.send('jar_res', get_jar());
 });
 
 function get_dirs() {
@@ -60,6 +64,12 @@ function get_dirs() {
 function get_paths() {
     return dialog.showOpenDialog({
     properties: [ 'openDirectory', 'openFile', 'multiSelections' ] });
+}
+
+function get_jar() {
+    return dialog.showOpenDialog({
+      filters: [{name: 'JAR', extensions: ['jar']}],
+      properties: [ 'openFile' ] });
 }
 
 

@@ -17,26 +17,22 @@ let appPath;
 *  @param {Object} project 
 *  @return {String} project.data 
 */
-// TODO add callback
-function runHierarchyParser(project, appP, callback) {
+function runProfiler(project, appP, callback) {
 
   appPath = appP;
 
   const agentJar = appPath + '/profiler/agent-0.1-SNAPSHOT.jar';
-  const appJar = appPath + '/profiler/test-0.1-SNAPSHOT.jar';
-  const agentArgs = ['test'];
-  const appArgs = [];
-
-  execProgram(agentJar, appJar, agentArgs, appArgs, callback);
+  execProgram(agentJar, project.jar, project.packages, project.runargs, callback);
 
 }
-module.exports.runHierarchyParser = runHierarchyParser;
+module.exports.runProfiler = runProfiler;
 
-// TODO add callback
 function execProgram(agentJar, appJar, agentArgs, appArgs, callback) {
 
+  // spawn child thread
   let child = cp.spawn('java', ['-javaagent:' + agentJar + '=' + agentArgs.join(','), '-jar', appJar].concat(appArgs));
 
+  // enforce utf8
   child.stdout.setEncoding('utf8');
   child.stderr.setEncoding('utf8');
   child.stdin.setEncoding('utf8');
@@ -154,23 +150,3 @@ function getClasses(data) {
   return classes;
 }
 module.exports.getClasses = getClasses;
-
-/**
-*  Extract direct callees from CHP output.
-*
-*  @param {String} stdout
-*  @return {String[]} callees 
-*/
-function extractCallees(stdout) {
-
-  const calleeRegex = /^\t((?!java)\S*(?:\(.+\))?)$/gm;
-  let callees = [];
-  let match = null;
-
-  while ( (match = calleeRegex.exec(stdout)) !== null ) {
-    callees.push(match[1]);
-  }
-
-  return callees;
-
-}

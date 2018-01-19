@@ -14,7 +14,11 @@ function show_tooltip(g, node) {
   var y = nbox.y + shift_y;
 
   var label = node.attr("sig");
-  var val = "";
+
+  // precision round to ms
+  var factor = Math.pow(10, 3);
+  var time = +node.attr("time");
+  var val = (!time) ? "" : (Math.round((time / 1000000) * factor) / factor) + "ms";
 
   // create tooltip
   var tooltip = g.append("g")

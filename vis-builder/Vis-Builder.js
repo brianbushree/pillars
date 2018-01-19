@@ -68,7 +68,7 @@ function buildHierarchyData(project) {
 
 }
 
-// TODO rewrite with new data format
+// TODO add recursion check
 function buildMethod(csv_data, elem, node, prefix) {
 
   prefix += ((node != 0) ? '.' : '') + (node++);
@@ -106,7 +106,7 @@ function buildMethod(csv_data, elem, node, prefix) {
 
         if (arrayEquals(temp, out.slice(out.length - temp.length, out.length))) {
 
-          console.log('loop!', temp);
+          //console.log('loop!', temp);
           temp.length = 0;
 
         }
