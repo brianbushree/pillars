@@ -1,4 +1,4 @@
-const projectMaker = require('./ProjectMaker.js');
+const { Project } = require('./Project.js');
 const visBuilder = require('./vis-builder/Vis-Builder.js');
 
 process.on('message', function(data) {
@@ -9,11 +9,11 @@ function exec(data) {
 
 	switch(data.type) {
 		case 'proj_data':    /* request to load project */
-			projectMaker.loadProject(data.data, data.appPath, function(err, project) {
+			Project.buildProject(data.data, data.appPath, function(err, data) {
 			    if (err) {
 			      console.log(err);
 			    }
-			   	process.send({ type: 'proj_data', data: project });
+			   	process.send({ type: 'proj_data', data: data });
 			});
 			break;
 

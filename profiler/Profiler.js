@@ -5,7 +5,6 @@
  *      into project.profile
  */
 const cp = require('child_process');
-const async = require('async');
 const fs = require('fs');
 const path = require('path');
 let appPath;
@@ -53,7 +52,6 @@ function execProgram(agentJar, appJar, agentArgs, appArgs, callback) {
 
   // close
   child.on('close', function(code, sig) {
-    // process.send({ type: 'exec_close', data: parseLog()});
     callback(null, parseLog());
   });
 }
@@ -110,43 +108,3 @@ function putMethod(arr, sig, indent, data) {
   }
 
 }
-
-
-
-
-
-/********** GETTERS **********/
-
-// TODO add to Project as a method (Classes)
-function getAllNames(data) {
-  let names = [];
-  async.eachSeries(data, function(c, callback) {
-    async.eachSeries(c.methods, function(m, cb) {
-        
-      names.push(c.name + '.' + m.name);
-
-      cb();
-    });
-    callback();
-  });
-
-  return names;
-}
-module.exports.getAllNames = getAllNames;
-
-function getClasses(data) {
-  let classes = [];
-  let cl;
-  async.eachSeries(data, function(c, callback) {
-    cl = { 'name': c.name, 'sigs': [] };
-    async.eachSeries(c.methods, function(m, cb) {
-      cl.sigs.push(m.sig);
-      cb();
-    });
-    classes.push(cl);
-    callback();
-  });
-
-  return classes;
-}
-module.exports.getClasses = getClasses;

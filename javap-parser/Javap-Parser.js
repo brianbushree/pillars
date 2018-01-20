@@ -7,7 +7,6 @@
 const fs = require('fs');
 const path = require('path');
 const execSync = require('child_process').execSync;
-const async = require('async');
 
 
 /**
@@ -32,7 +31,7 @@ function parseAsync(dirs, callback) {
       pending = files.length;
       if (!pending) return callback(null, classes);
 
-      async.each(files, function(file, cb) {
+      files.forEach(function(file) {
 
         f = path.join(dir, file);
 
@@ -47,7 +46,6 @@ function parseAsync(dirs, callback) {
               //classes = compressSubclasses(classes);
               callback(null, classes); 
             }
-            cb();
           });
 
         }
@@ -59,11 +57,9 @@ function parseAsync(dirs, callback) {
             // classes = compressSubclasses(classes);
             callback(null, classes); 
           }
-          cb();
         }
 
       });
-
     });
 
   });

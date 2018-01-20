@@ -5,9 +5,10 @@ const dialog = electron.dialog;
 const profiler = require('./profiler/Profiler.js');
 const main = require('./main.js');
 const { fork } = require('child_process');
+const { Project } = require('./Project.js');
 
 let project = null;
-let visData = null;
+let proj = null;
 
 
 /* 
@@ -81,6 +82,7 @@ function get_jar() {
 
 */
 ipcMain.on('load_project', function (event, data) {
+  project = new Project(data.class_dirs, data.src_dirs, data.classpath, data.jar, data.runargs, data.packages);
   worker.send({ type: 'proj_data', data: data, appPath: app.getAppPath() });
   main.loadWindow('web/exec.html');
 });
@@ -103,7 +105,7 @@ ipcMain.on('exec_req', function (event, root) {
 
 */
 ipcMain.on('classes-req', function (event, data) {
-  event.sender.send('classes-res', profiler.getClasses(project.data));
+  event.sender.send('classes-res', project.getClasses());
 });
 
 ipcMain.on('root-select', function (event, root) {
@@ -121,7 +123,7 @@ ipcMain.on('new_root', function (event, root) {
 });
 
 ipcMain.on('data-req', function (event) {
-  event.sender.send('data-res', visData);
+  event.sender.send('data-res', project.visData);
 });
 
 
@@ -150,12 +152,13 @@ worker.on('message', function (data) {
       break;
 
     case 'proj_data':   /* project data complete */
-      project = data.data;
+      project.class_data = data.data.class_data;
+      project.exec_data = data.data.exec_data;
       main.loadWindow('web/select-root.html');
       break;
 
     case 'vis_data':    /* vis data complete */
-      visData = data.data;
+      project.visData = data.data;
       main.loadWindowResize("web/vis.html", 1050, 800);
       break;
 

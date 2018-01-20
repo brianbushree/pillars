@@ -4,7 +4,6 @@
 *
 *     This builds/filters data to input to the visualization. 
 */
-const async = require('async');
 
 function buildVisData(project, root) {
 
@@ -12,7 +11,6 @@ function buildVisData(project, root) {
   vis_data['map'] = buildDataMap(project);
   vis_data['data'] = buildHierarchyData(project);
   vis_data['root'] = root;
-  console.log(vis_data['data']);
 
   return vis_data;
 
@@ -23,18 +21,15 @@ function buildDataMap(project) {
 
   let data_map = {};
 
-  async.each(project.data, function(c, callback) {
-    async.each(c.methods, function(m, cb) {
-
-      data_map[m.sig] = m;
-      cb();
-
+  // add javap data to map
+  project.class_data.forEach(function(cls) {
+    cls.methods.forEach(function (mthd) {
+      data_map[mthd.sig] = mthd;
     });
-    callback();
   });
 
-  // check all callees
-  addToMap(data_map, project.profile[0]);
+  // add all callees
+  addToMap(data_map, project.exec_data[0]);
 
   return data_map;
 
@@ -62,8 +57,7 @@ function buildHierarchyData(project) {
   let node = 0;
 
 
-  node = buildMethod(data, project.profile[0], node, '');
-  console.log(data);
+  node = buildMethod(data, project.exec_data[0], node, '');
   return data;
 
 }

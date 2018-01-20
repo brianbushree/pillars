@@ -170,7 +170,6 @@ function getTimeDomain(root) {
       max = e.data.time;
     }
   });
-  console.log([min, max]);
   return [min, max];
 }
 
@@ -183,8 +182,13 @@ function drawNodes(g, nodes, depth, raise, root) {
       .attr("cy", ((!hor) ? y : x))
       .attr("id", function(d) { return d.data.name; })
       .attr("sig", function(d) { return d.data.sig; })
+      .attr("time", function(d) { return d.data.time; })
       .attr("r", function(d) {
-        return scales.radius(d.data.time);
+        if (d.data.time) {
+          return scales.radius(d.data.time);
+        } else {
+          return scales.radius.range()[0];
+        }
       })
       .style("fill", function(d) {
          var c;
@@ -209,7 +213,11 @@ function drawNodes(g, nodes, depth, raise, root) {
       .attr("class", function(d)
         { return ((d.depth == 0) ? "root " : "") + "node" })
       .attr("r", function(d) {
-        return scales.radius(d.data.time);
+        if (d.data.time) {
+          return scales.radius(d.data.time);
+        } else {
+          return scales.radius.range()[0];
+        }
       })
       .style("fill", function(d) {
          var c;

@@ -6,7 +6,7 @@ function start() {
 
 let project = {
 	'class_dirs' : [],
-	'src' : [],
+	'src_dirs' : [],
 	'classpath': [],
 	'jar': null,
 	'runargs': [],
@@ -15,11 +15,11 @@ let project = {
 let loading = null;
 
 function make_project(project) {
-	if (project.class_dirs.length && project.src.length && project.jar && project.packages.length) {
+	if (project.class_dirs.length && project.src_dirs.length && project.jar && project.packages.length) {
 		alert("run!");
 		ipcRenderer.send('load_project', project);
+		start_loading();
 	}
-	start_loading();
 }
 
 function start_loading() {
@@ -80,8 +80,8 @@ ipcRenderer.on('class_res', function(e, data) {
 
 ipcRenderer.on('src_res', function(e, data) {
 	if (!data) { return }
-	add_files_to_elem('proj-src', data, project.src.length);
-	project.src = project.src.concat(data);
+	add_files_to_elem('proj-src', data, project.src_dirs.length);
+	project.src_dirs = project.src_dirs.concat(data);
 });
 
 ipcRenderer.on('classpath_res', function(e, data) {
@@ -139,7 +139,7 @@ function remove_file_from_list(child, index) {
 	if (parent.getAttribute('id') == 'proj-classes') {
 		arr = project.class_dirs;
 	} else if (parent.getAttribute('id') == 'proj-src') {
-		arr = project.src;
+		arr = project.src_dirs;
 	} else if (parent.getAttribute('id') == 'proj-classpath') {
 		arr = project.classpath;
 	} else if (parent.getAttribute('id') == 'proj-jar') {
@@ -162,7 +162,7 @@ function remove_file_from_list(child, index) {
 	if (parent.getAttribute('id') == 'proj-classes') {
 		project.class_dirs = cpy;
 	} else if (parent.getAttribute('id') == 'proj-src') {
-		project.src = cpy;
+		project.src_dirs = cpy;
 	} else if (parent.getAttribute('id') == 'proj-classpath') {
 		project.classpath = cpy;
 	} else if (parent.getAttribute('id') == 'proj-packages') {
