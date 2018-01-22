@@ -1,5 +1,5 @@
 const javapParser = require('./javap-parser/Javap-Parser.js');
-const profiler = require('./profiler/Profiler.js');
+const { Profiler } = require('./profiler/Profiler.js');
 
 class Project {
 
@@ -31,6 +31,8 @@ class Project {
 	/**
 	 * Runs javap parser, profiler, and callback respectively.
 	 *
+	 * Note: static to handle serialized project in worker
+	 *
 	 * @param {Object} proj  serialized Project
 	 * @param {string} appPath  path of app root
 	 * @param {Function} callback(err, data)  callback function
@@ -43,9 +45,10 @@ class Project {
 	    javapParser.parseAsync(proj.class_dirs, function(err, res) {
 	      ret_data.class_data = res;
 
+	      let profiler = new Profiler(appPath);
+
 	      // Run Profiler
-	      profiler.runProfiler(proj, appPath,
-	        function(err, data) {
+	      profiler.runProfiler(proj, function(err, data) {
 
 	          ret_data.exec_data = data;
 
@@ -88,7 +91,7 @@ class Project {
 	  this.class_data.forEach(function(cls) {
 	    cl = { 'name': cls.name, 'sigs': [] };
 	    cls.methods.forEach(function (mthd) {
-	      cl.sigs.push(mthd.sig);      
+	      cl.sigs.push(mthd.sig);
 	    });
 	    classes.push(cl);
 	  });
