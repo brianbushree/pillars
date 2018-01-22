@@ -7,16 +7,23 @@
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
-// let appPath;
 
 class Profiler {
 
+  /**
+   * Creates a Profiler given the app's root.
+   *
+   * @param {string} appPath  app's root path
+   */
   constructor(appPath) {
     this.appPath = appPath;
   }
 
   /**
+   * Profiles a given project and calls callback.
    *
+   * @param {Object} proj  serialized Project
+   * @param {Function} callback(err, data)  callback function
    */
   runProfiler(project, callback) {
 
@@ -25,6 +32,15 @@ class Profiler {
 
   }
 
+  /**
+   * Executes profiler, parses data, and calls callback.
+   *
+   * @param {string} agentJar  path to agent jar
+   * @param {string} appJar  path to program jar
+   * @param {Array<string>} agentArgs  agent arguements
+   * @param {Array<string>} appArgs  program arguements
+   * @param {Function} callback(err, data)  callback function
+   */
   _execProgram(agentJar, appJar, agentArgs, appArgs, callback) {
 
     // 'cd' into $app$/profiler
@@ -63,16 +79,33 @@ class Profiler {
     }.bind(this));
   }
 
+  /**
+   * Parse main thread's output.
+   *
+   * @return {Array<Object>} main thread's calls
+   */
   _parseLog() {
     return this._parseThread(1);
   }
 
+  /**
+   * Parse a given thread's output.
+   *
+   * @param {number} thread  thread to parse
+   * @return {Array<Object>} given thread's calls
+   */
   _parseThread(thread) {
     const log = this.appPath + '/profiler/out/thread_' + thread + '.txt';
     let contents = fs.readFileSync(log, 'utf8');
     return this._parseMethodCalls(contents);
   }
 
+  /**
+   * Given log output, parses its calls.
+   *
+   * @param {string} log  contents of log file
+   * @return {Array<Object>} calls  method calls and children
+   */
   _parseMethodCalls(log) {
 
     const methodOutRegex = /(.*(?:.*){1}) : start(?=(?:.|\n)*?\1 : (\d+)\n)/gm;
@@ -90,6 +123,14 @@ class Profiler {
 
   }
 
+  /**
+   * Add method to specified array.
+   *
+   * @param {Array<Object>} arr  array to add to
+   * @param {string} sig  signature of the method
+   * @param {number} indent  method's level of indentation
+   * @param {string} data  time/thread data to include
+   */
   _putMethod(arr, sig, indent, data) {
 
     if (indent == 0) {
