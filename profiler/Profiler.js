@@ -28,6 +28,10 @@ module.exports.runProfiler = runProfiler;
 
 function execProgram(agentJar, appJar, agentArgs, appArgs, callback) {
 
+  // 'cd' into $app$/profiler
+  let cwd = process.cwd();
+  process.chdir(appPath + '/profiler');
+
   // spawn child thread
   let child = cp.spawn('java', ['-javaagent:' + agentJar + '=' + agentArgs.join(','), '-jar', appJar].concat(appArgs));
 
@@ -52,6 +56,10 @@ function execProgram(agentJar, appJar, agentArgs, appArgs, callback) {
 
   // close
   child.on('close', function(code, sig) {
+
+    // 'cd' to previous
+    process.chdir(cwd);
+
     callback(null, parseLog());
   });
 }
@@ -61,7 +69,7 @@ function parseLog() {
 }
 
 function parseThread(thread) {
-  const log = appPath + '/logger_profile.out.' + thread;
+  const log = appPath + '/profiler/out/thread_' + thread + '.txt';
   let contents = fs.readFileSync(log, 'utf8');
   return parseMethodCalls(contents);
 }

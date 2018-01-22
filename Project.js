@@ -3,6 +3,16 @@ const profiler = require('./profiler/Profiler.js');
 
 class Project {
 
+	/**
+	 * Creates a Project given user input.
+	 *
+	 * @param {Array<string>} class_dirs  directories of .class files
+	 * @param {Array<string>} src_dirs  directories of .java files
+	 * @param {Array<string>} classpath  paths of classpath var
+	 * @param {string} jar  path to program jar
+	 * @param {Array<string>} runargs  runtime arguements
+	 * @param {Array<string>} packages  packages to trace
+	 */
 	constructor (class_dirs, src_dirs, classpath, jar, runargs, packages) {
 
 		this.class_dirs = class_dirs;
@@ -17,6 +27,14 @@ class Project {
 
 	}
 
+
+	/**
+	 * Runs javap parser, profiler, and callback respectively.
+	 *
+	 * @param {Object} proj  serialized Project
+	 * @param {string} appPath  path of app root
+	 * @param {Function} callback(err, data)  callback function
+	 */
 	static buildProject (proj, appPath, callback) {
 
 		let ret_data = {};
@@ -41,6 +59,12 @@ class Project {
 
 	}
 
+	/**
+	 * Gets the signatures of every method.
+	 *
+	 * @return {Array<string>} names  signatures of every method in
+	 *                                 class_data
+	 */
 	getAllNames() {
 	  let names = [];
 	  this.class_data.forEach(function(cls) {
@@ -51,6 +75,12 @@ class Project {
 	  return names;
 	}
 
+	/**
+	 * Gets the names of every class.
+	 *
+	 * @return {Array<string>} names  names of every class in
+	 *                                 class_data
+	 */
 	getClasses() {
 	  let classes = [];
 	  let cl;
