@@ -57,16 +57,16 @@ function buildHierarchyData(project) {
   let node = 0;
 
 
-  node = buildMethod(data, project.exec_data[0], node, '');
+  node = buildMethod(data, project.exec_data[0], node, '', true);
   return data;
 
 }
 
 // TODO add recursion check
-function buildMethod(csv_data, elem, node, prefix) {
+function buildMethod(csv_data, elem, node, prefix, new_thread) {
 
   prefix += ((node != 0) ? '.' : '') + (node++);
-  csv_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time });
+  csv_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time, 'new_thread': new_thread });
 
 
   let out = [];
@@ -76,7 +76,8 @@ function buildMethod(csv_data, elem, node, prefix) {
     if (call.sig == 'Thread.start()') {
 
       // We want to see all created threads
-      node = buildMethod(csv_data, call, node, prefix);
+      node = buildMethod(csv_data, call.callees[0], node, prefix, true);
+
 
     } else {
 
@@ -86,13 +87,13 @@ function buildMethod(csv_data, elem, node, prefix) {
         if (temp.length != 0) {
           temp.forEach(function(c) {
             out.push(c);
-            node = buildMethod(csv_data, c, node, prefix);
+            node = buildMethod(csv_data, c, node, prefix, false);
           });
           temp.length = 0;
         }
 
         out.push(call);
-        node = buildMethod(csv_data, call, node, prefix);
+        node = buildMethod(csv_data, call, node, prefix, false);
 
       } else {
 

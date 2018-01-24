@@ -4,6 +4,7 @@ const {app} = electron;
 const dialog = electron.dialog;
 const profiler = require('./profiler/Profiler.js');
 const main = require('./main.js');
+const fs = require('fs');
 const { fork } = require('child_process');
 const { Project } = require('./Project.js');
 
@@ -81,7 +82,12 @@ function get_jar() {
       exec.html - display terminal
 
 */
-ipcMain.on('load_project', function (event, data) {
+ipcMain.on('load_project', function (event, data, save) {
+
+  if (save) {
+    fs.writeFileSync(app.getAppPath() + '/stor/test.project', JSON.stringify(data));
+  }
+
   project = new Project(data.class_dirs, data.src_dirs, data.classpath, data.jar, data.runargs, data.packages);
   worker.send({ type: 'proj_data', data: data, appPath: app.getAppPath() });
   main.loadWindow('web/exec.html');
@@ -134,7 +140,7 @@ ipcMain.on('data-req', function (event) {
       build data
 */
 
-let worker = fork('worker.js', [],
+let worker = fork('main/worker.js', [],
  { stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ] });
 
 worker.stdout.on('data', function(data) {

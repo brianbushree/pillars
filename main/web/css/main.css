@@ -16,6 +16,11 @@ b {
 /*  stroke-width: 1px;*/
 }
 
+.node.newthread {
+  stroke: PaleGreen;
+  stroke-width: 3px;
+}
+
 .link {
   fill: none;
   stroke: silver;

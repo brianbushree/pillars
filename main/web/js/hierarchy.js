@@ -211,7 +211,7 @@ function drawNodes(g, nodes, depth, raise, root) {
       .attr("sig", function(d) { return d.data.sig; })
       .attr("time", function(d) { return d.data.time; })
       .attr("class", function(d)
-        { return ((d.depth == 0) ? "root " : "") + "node" })
+        { return ((d.depth == 0) ? "root " : "") + "node" + ((d.data.new_thread) ? " newthread" : ""); })
       .attr("r", function(d) {
         if (d.data.time) {
           return scales.radius(d.data.time);

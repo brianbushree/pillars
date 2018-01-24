@@ -2,7 +2,7 @@
   "name": "pillars",
   "version": "1.0.0",
   "description": "App used to visualize call hierarchy structure of java projects, built on Electron.",
-  "main": "main.js",
+  "main": "main/main.js",
   "scripts": {
     "start": "electron ."
   },

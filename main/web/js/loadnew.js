@@ -17,7 +17,7 @@ let loading = null;
 function make_project(project) {
 	if (project.class_dirs.length && project.src_dirs.length && project.jar && project.packages.length) {
 		alert("run!");
-		ipcRenderer.send('load_project', project);
+		ipcRenderer.send('load_project', project, true);
 		start_loading();
 	}
 }

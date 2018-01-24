@@ -2,7 +2,7 @@
 *  Javap-Parser.js
 *     
 *     parse a directory of '.class' files
-*       using 'javap' into JSON format
+*       using 'javap' command into JSON format
 */
 const fs = require('fs');
 const path = require('path');
@@ -13,50 +13,54 @@ const execSync = require('child_process').execSync;
  * Parse a directory of '.class' files
  *  into JSON format from 'javap' output.
  *
- *  @param {String} directory 
- *  @param {function} callback(err, data)
+ * @param {string} directory 
+ * @param {Function} callback(err, data)
  */
 function parseAsync(dirs, callback) {
 
   let classes = [];
   let pending;
-  let f;
-  let a;
+  let full_path;
 
   dirs.forEach(function(dir, i) {
 
+    // read dir
     fs.readdir(dir, function(err, files) {
       if (err) return callback(err);
 
+      // set pending var
       pending = files.length;
       if (!pending) return callback(null, classes);
 
       files.forEach(function(file) {
 
-        f = path.join(dir, file);
+        full_path = path.join(dir, file);
 
-        if (fs.lstatSync(f).isDirectory()) {
+        if (fs.lstatSync(full_path).isDirectory()) {
 
-          a = [];
-          a.push(f);
+          // recur
+          parseAsync([ full_path ], function(err, res) {
 
-          parseAsync(a, function(err, res) {
             classes = classes.concat(res);
             if (!--pending) {
               //classes = compressSubclasses(classes);
               callback(null, classes); 
             }
+
           });
 
         }
         else {
-          if (path.extname(f).toLowerCase() === '.class') {
-            classes.push(makeClass(f));
+
+          if (path.extname(full_path).toLowerCase() === '.class') {
+            classes.push(makeClass(full_path));
           }
+
           if (!--pending) {
             // classes = compressSubclasses(classes);
             callback(null, classes); 
           }
+          
         }
 
       });
@@ -70,8 +74,8 @@ module.exports.parseAsync = parseAsync;
 /**
  * Make class objects from a '.class' file.
  *
- *  @param {String} file 
- *  @return {Object} class object
+ * @param {string} file 
+ * @return {Object} class data object
  */
 function makeClass(file) {
 
@@ -96,7 +100,8 @@ function makeClass(file) {
 
   classAttrs = classRegex.exec(stdout); 
   if (classAttrs == null) {
-    console.log(file);
+    console.err('No class attributes: ' + file);
+    return null;
   }
 
   c.attributes.visibility = classAttrs[1];
@@ -143,8 +148,8 @@ function makeClass(file) {
 /**
  * Move subclasses inside classes.
  *
- *  @param {class obj[]} classes 
- *  @return {class obj[]} classes 
+ * @param {Array<Object>} classes 
+ * @return {Array<Object>} newClasses 
  */
 function compressSubclasses(classes) {
 

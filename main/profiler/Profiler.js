@@ -27,7 +27,7 @@ class Profiler {
    */
   runProfiler(project, callback) {
 
-    const agentJar = this.appPath + '/profiler/agent-0.1-SNAPSHOT.jar';
+    const agentJar = this.appPath + '/main/profiler/agent-0.1-SNAPSHOT.jar';
     this._execProgram(agentJar, project.jar, project.packages, project.runargs, callback);
 
   }
@@ -45,7 +45,7 @@ class Profiler {
 
     // 'cd' into $app$/profiler
     let cwd = process.cwd();
-    process.chdir(this.appPath + '/profiler');
+    process.chdir(this.appPath + '/main/profiler');
 
     // spawn child thread
     let child = cp.spawn('java', ['-javaagent:' + agentJar + '=' + agentArgs.join(','), '-jar', appJar].concat(appArgs));
@@ -95,7 +95,7 @@ class Profiler {
    * @return {Array<Object>} given thread's calls
    */
   _parseThread(thread) {
-    const log = this.appPath + '/profiler/out/thread_' + thread + '.txt';
+    const log = this.appPath + '/main/profiler/out/thread_' + thread + '.txt';
     let contents = fs.readFileSync(log, 'utf8');
     return this._parseMethodCalls(contents);
   }

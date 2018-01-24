@@ -1,4 +1,4 @@
-.DS_Store
-profiler/.DS_Store
-spooned/
-stor/
+*.DS_Store
+node_modules/*
+main/profiler/out/*
+stor/*
