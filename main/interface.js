@@ -7,7 +7,9 @@ const main = require('./main.js');
 const fs = require('fs');
 const { fork } = require('child_process');
 const { Project } = require('./Project.js');
+const { ProjectStore } = require('./ProjectStore.js');
 
+let store = new ProjectStore(app.getAppPath() + '/stor');
 let project = null;
 let proj = null;
 
@@ -36,6 +38,24 @@ ipcMain.on('start', function (event) {
 
 ipcMain.on('load_existing', function (event) {
   main.loadWindow('web/load-existing.html');
+});
+
+ipcMain.on('proj_stor_req', function (event) {
+  store.getAllNames(function (err, names) {
+    event.sender.send('proj_stor_res', names);
+  });
+});
+
+ipcMain.on('proj_del', function (event, name) {
+  store.deleteSync(name);
+});
+
+ipcMain.on('proj_stor_select', function(event, name) {
+
+  store.getProject(name, function(err, project) {
+    load_project(event, project, false);
+  });
+
 });
 
 ipcMain.on('load_new', function (event) {
@@ -82,16 +102,25 @@ function get_jar() {
       exec.html - display terminal
 
 */
-ipcMain.on('load_project', function (event, data, save) {
+function load_project(event, data, save) {
 
+  // save
   if (save) {
-    fs.writeFileSync(app.getAppPath() + '/stor/test.project', JSON.stringify(data));
+    store.storeSync(data);
   }
 
+  // make project
   project = new Project(data.class_dirs, data.src_dirs, data.classpath, data.jar, data.runargs, data.packages);
+
+  // send stringified project
   worker.send({ type: 'proj_data', data: data, appPath: app.getAppPath() });
+
+  // load exec window
   main.loadWindow('web/exec.html');
-});
+
+}
+
+ipcMain.on('load_project', load_project);
 
 let exec_buf = '';
 

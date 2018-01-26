@@ -5,6 +5,7 @@ function start() {
 }
 
 let project = {
+	'name' : null,
 	'class_dirs' : [],
 	'src_dirs' : [],
 	'classpath': [],
@@ -15,8 +16,10 @@ let project = {
 let loading = null;
 
 function make_project(project) {
-	if (project.class_dirs.length && project.src_dirs.length && project.jar && project.packages.length) {
+	let name = document.getElementById('name').value;
+	if (name.length && project.class_dirs.length && project.src_dirs.length && project.jar && project.packages.length) {
 		alert("run!");
+		project.name = name;
 		ipcRenderer.send('load_project', project, true);
 		start_loading();
 	}
