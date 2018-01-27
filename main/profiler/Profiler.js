@@ -8,7 +8,7 @@ const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-class Profiler {
+exports.Profiler = class Profiler {
 
   /**
    * Creates a Profiler given the app's root.
@@ -158,5 +158,3 @@ class Profiler {
 
   }
 }
-
-exports.Profiler = Profiler;

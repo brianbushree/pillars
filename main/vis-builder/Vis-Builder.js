@@ -5,18 +5,27 @@
 *     This builds/filters data to input to the visualization. 
 */
 
-function buildVisData(project, root) {
+/**
+ * Given a built project, build & return visualization data.
+ *
+ * @param {Object} project  built project
+ */
+exports.buildVisData = function buildVisData(project) {
 
   let vis_data = {};
   vis_data['map'] = buildDataMap(project);
   vis_data['data'] = buildHierarchyData(project);
-  vis_data['root'] = root;
 
   return vis_data;
 
 }
-module.exports.buildVisData = buildVisData;
 
+/**
+ * Given a built project, make class-data map.
+ *
+ * @param {Object} project  built project
+ * @return {Object} data_map  Map<sig, data>
+ */
 function buildDataMap(project) {
 
   let data_map = {};
@@ -35,6 +44,13 @@ function buildDataMap(project) {
 
 }
 
+/**
+ * Check all callees for missing entry
+ *  in data_map. Add default if necessary.
+ *
+ * @param {Object} data_map  Map<sig, data> to add to
+ * @param {Object} elem  method Object
+ */
 function addToMap(data_map, elem) {
 
   if (!data_map[elem.sig]) {
@@ -51,6 +67,12 @@ function addToMap(data_map, elem) {
 
 }
 
+/**
+ * Given a built project, return execution data.
+ *
+ * @param {Object} project
+ * @return {Object} data  method data
+ */
 function buildHierarchyData(project) {
 
   let data = [];
@@ -63,10 +85,23 @@ function buildHierarchyData(project) {
 }
 
 // TODO add recursion check
-function buildMethod(csv_data, elem, node, prefix, new_thread) {
+
+/**
+ * Given a built project, return execution data
+ *  while avoiding (and aggregating) repeated sets
+ *  of method calls (mostly loops).
+ *
+ * @param {Array<Object>} node_data  list of nodes to add to
+ * @param {Object} elem  method call Object
+ * @param {number} node  unique node value
+ * @param {string} prefix  this node's parent
+ * @param {boolean} new_thread  true if this method was called by Thread.start()
+ * @return {number} node  next node id
+ */
+function buildMethod(node_data, elem, node, prefix, new_thread) {
 
   prefix += ((node != 0) ? '.' : '') + (node++);
-  csv_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time, 'new_thread': new_thread });
+  node_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time, 'new_thread': new_thread });
 
 
   let out = [];
@@ -76,7 +111,7 @@ function buildMethod(csv_data, elem, node, prefix, new_thread) {
     if (call.sig == 'Thread.start()') {
 
       // We want to see all created threads
-      node = buildMethod(csv_data, call.callees[0], node, prefix, true);
+      node = buildMethod(node_data, call.callees[0], node, prefix, true);
 
 
     } else {
@@ -87,13 +122,13 @@ function buildMethod(csv_data, elem, node, prefix, new_thread) {
         if (temp.length != 0) {
           temp.forEach(function(c) {
             out.push(c);
-            node = buildMethod(csv_data, c, node, prefix, false);
+            node = buildMethod(node_data, c, node, prefix, false);
           });
           temp.length = 0;
         }
 
         out.push(call);
-        node = buildMethod(csv_data, call, node, prefix, false);
+        node = buildMethod(node_data, call, node, prefix, false);
 
       } else {
 
@@ -101,7 +136,6 @@ function buildMethod(csv_data, elem, node, prefix, new_thread) {
 
         if (arrayEquals(temp, out.slice(out.length - temp.length, out.length))) {
 
-          //console.log('loop!', temp);
           temp.length = 0;
 
         }
@@ -114,6 +148,13 @@ function buildMethod(csv_data, elem, node, prefix, new_thread) {
   return node;
 }
 
+/**
+ * Test if array of method calls contains signature.
+ *
+ * @param {Array<Object>} arr  array of method calls
+ * @param {string} sig  signature to test
+ * @return {boolean} true if included, false otherwise
+ */
 function includesSig(arr, sig) {
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].sig == sig) {
@@ -123,6 +164,13 @@ function includesSig(arr, sig) {
   return false;
 }
 
+/**
+ * Test if two arrays of method calls are equal.
+ *
+ * @param {Array<Object>} a  array of method calls
+ * @param {Array<Object>} b  array of method calls
+ * @return {boolean} true if equal, false otherwise
+ */
 function arrayEquals(a, b) {
   if (a.length == b.length) {
     for (let i = 0; i < a.length; i++) {
@@ -136,6 +184,14 @@ function arrayEquals(a, b) {
   }
 }
 
+/**
+ * Test if a given method directly or indirectly 
+ *  calls itself. (Except 'Thread.start()')
+ *
+ * @param {Array<string>} trace  list of all method calls
+ * @param {Object} elem  method call Object
+ * @return {boolean} true if recursive, false otherwise
+ */
 function reursionCheck(trace, elem) {
 
   // We want to see all created threads

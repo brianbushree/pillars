@@ -16,7 +16,7 @@ const execSync = require('child_process').execSync;
  * @param {string} directory 
  * @param {Function} callback(err, data)
  */
-function parseAsync(dirs, callback) {
+exports.parseAsync = function parseAsync(dirs, callback) {
 
   let classes = [];
   let pending;
@@ -69,7 +69,6 @@ function parseAsync(dirs, callback) {
   });
 
 }
-module.exports.parseAsync = parseAsync;
 
 /**
  * Make class objects from a '.class' file.

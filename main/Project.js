@@ -1,7 +1,7 @@
 const javapParser = require('./javap-parser/Javap-Parser.js');
 const { Profiler } = require('./profiler/Profiler.js');
 
-class Project {
+exports.Project = class Project {
 
 	/**
 	 * Creates a Project given user input.
@@ -100,5 +100,3 @@ class Project {
 	}
 
 }
-
-exports.Project = Project;

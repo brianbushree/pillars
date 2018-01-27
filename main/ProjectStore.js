@@ -1,20 +1,47 @@
 const fs = require('fs');
 const path = require('path');
 
-class ProjectStore {
+/**
+ * Directory used to persistenly store Projects
+ *  as '.project' files.
+ *
+ *  This will store only the user input,
+ *  not exec/vis data.
+ */
+exports.ProjectStore = class ProjectStore {
 	
+	/**
+	 * Create a store out of an existing directory.
+	 *
+	 * @param {string} storage_dir  existing directory to use
+	 */
 	constructor(storage_dir) {
 		this.store = storage_dir;
 	}
 
+	/**
+	 * Save a project to the store.
+	 *
+	 * @param {Object} project  project to store
+	 */
 	storeSync(project) {
 		fs.writeFileSync(this.store + '/' + project.name + '.project', JSON.stringify(project));
 	}
 
+	/**
+	 * Given its name, delete a saved project.
+	 *
+	 * @param {string} name  project name to delete
+	 */
 	deleteSync(name) {
 		fs.unlinkSync(this.store + '/' + name + '.project');
 	}
 
+	/**
+	 * Return the names of the projects in the store.
+	 *
+	 * @param {Function} callback(err, names)
+	 */
 	getAllNames(callback) {
 		let names = [];
 		let full_path;
@@ -39,6 +66,12 @@ class ProjectStore {
 		}.bind(this));
 	}
 
+	/**
+	 * Given the name of an existing project,
+	 *  return the project.
+	 *
+	 * @param {Function} callback(err, project)
+	 */
 	getProject(name, callback) {
 		
 		let project = null;
@@ -69,5 +102,3 @@ class ProjectStore {
 
 
 }
-
-exports.ProjectStore = ProjectStore;

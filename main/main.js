@@ -9,14 +9,12 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
-const exec = require('child_process').exec;
-const fs = require('fs');
-const interf = require('./interface.js');
+const inter = require('./interface.js')
 
 let mainWindow;
 
 /**
- * init
+ * Init
  */
 app.on('ready', createWindow);
 app.on('activate', function () {
@@ -26,7 +24,7 @@ app.on('activate', function () {
 });
 
 /**
- * close/quit
+ * Close/quit
  */
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
@@ -56,6 +54,11 @@ function createWindow() {
   });
 }
 
+/**
+ * Redirect main window.
+ * 
+ * @param {string} file  path to file
+ */
 function loadWindow(file) {
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, file),
@@ -63,9 +66,15 @@ function loadWindow(file) {
     slashes: true
   }));
 }
-module.exports.loadWindow = loadWindow;
+exports.loadWindow = loadWindow;
 
-
+/**
+ * Redirect main window & resize.
+ * 
+ * @param {string} file  path to file
+ * @param {number} w  new width
+ * @param {number} h  new height
+ */
 function loadWindowResize(file, w, h) {
   loadWindow(file);
   mainWindow.setBounds({
@@ -75,4 +84,5 @@ function loadWindowResize(file, w, h) {
     height: h
   });
 }
-module.exports.loadWindowResize = loadWindowResize;
+
+exports.loadWindowResize = loadWindowResize;

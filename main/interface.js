@@ -1,6 +1,6 @@
 const electron = require('electron');
-const {ipcMain} = electron;
-const {app} = electron;
+const { ipcMain } = electron;
+const { app } = electron;
 const dialog = electron.dialog;
 const profiler = require('./profiler/Profiler.js');
 const main = require('./main.js');

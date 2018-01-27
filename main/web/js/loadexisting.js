@@ -69,11 +69,6 @@ function remove_file_from_list(child, index) {
 
 }
 
-function select_from_list(elem) {
-	deselect_all();
-	add_class(elem.parentNode, 'selected');
-}
-
 function deselect_all(parent) {
 
 	let all = document.querySelectorAll('.selected');
@@ -82,6 +77,11 @@ function deselect_all(parent) {
 		remove_class(e, 'selected');
 	}
 
+}
+
+function select_from_list(elem) {
+	deselect_all();
+	add_class(elem.parentNode, 'selected');
 }
 
 function has_class(e, name) {
