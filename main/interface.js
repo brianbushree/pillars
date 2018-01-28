@@ -31,11 +31,11 @@ ipcMain.on('start', function (event) {
     
     2. Begin loading project
 
-      load-existing.html ||
-      load-new.html
-
 */
 
+/* -------------------------------------------------*/
+/* load-existing.html                               */
+/* -------------------------------------------------*/
 ipcMain.on('load_existing', function (event) {
   main.loadWindow('web/load-existing.html');
 });
@@ -58,6 +58,9 @@ ipcMain.on('proj_stor_select', function(event, name) {
 
 });
 
+/* -------------------------------------------------*/
+/* load-new.html                                    */
+/* -------------------------------------------------*/
 ipcMain.on('load_new', function (event) {
   main.loadWindow('web/load-new.html');
 });
@@ -94,12 +97,10 @@ function get_jar() {
       properties: [ 'openFile' ] });
 }
 
-
 /*
     
     3. Execute Program with logging
-
-      exec.html - display terminal
+       + Build exec data
 
 */
 function load_project(event, data, save) {
@@ -122,6 +123,10 @@ function load_project(event, data, save) {
 
 ipcMain.on('load_project', load_project);
 
+/* -------------------------------------------------*/
+/* exec.html                                        */
+/* -------------------------------------------------*/
+
 let exec_buf = '';
 
 ipcMain.on('exec_send', function(event, val) {
@@ -133,12 +138,17 @@ ipcMain.on('exec_req', function (event, root) {
   event.sender.send('exec-res', exec_buf);
 });
 
-
 /*
     
-    4. Scoping - select root?
+    4. Scoping - select root
+
+        TODO : is this necessary?
 
 */
+
+/* -------------------------------------------------*/
+/* select-root.html                                 */
+/* -------------------------------------------------*/
 ipcMain.on('classes-req', function (event, data) {
   event.sender.send('classes-res', project.getClasses());
 });
@@ -153,6 +163,10 @@ ipcMain.on('root-select', function (event, root) {
     5. Visualization
 
 */
+
+/* -------------------------------------------------*/
+/* vis.html                                         */
+/* -------------------------------------------------*/
 ipcMain.on('new_root', function (event, root) {
    main.loadWindow('web/select-root.html');
 });
@@ -166,7 +180,8 @@ ipcMain.on('data-req', function (event) {
     
     Worker Thread
       execute program
-      build data
+      build exec data
+      build vis data
 */
 
 let worker = fork('main/worker.js', [],
