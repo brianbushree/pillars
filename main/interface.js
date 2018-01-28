@@ -25,10 +25,11 @@ let proj = null;
   
     1. Splash page
 
-    index.html
-
 */
 
+/* -------------------------------------------------*/
+/* index.html                                       */
+/* -------------------------------------------------*/
 ipcMain.on('start', function (event) {
   main.loadWindow('web/index.html');
 });

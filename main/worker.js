@@ -1,14 +1,21 @@
+/**
+ *
+ *  worker.js
+ *
+ *     In order to take load off main thread,
+ *      use this seperate thread to perform tasks.
+ */
 const { Project } = require('./Project.js');
 const visBuilder = require('./vis-builder/Vis-Builder.js');
 
-process.on('message', function(data) {
-	exec(data);
-});
+process.on('message', exec);
 
 function exec(data) {
 
 	switch(data.type) {
-		case 'proj_data':    /* request to load project */
+
+		/* request to build project */
+		case 'proj_data':
 			Project.buildProject(data.data, data.appPath, function(err, data) {
 			    if (err) {
 			      console.log(err);
@@ -17,7 +24,8 @@ function exec(data) {
 			});
 			break;
 
-		case 'vis_data':    /* request to load vis_data */
+		/* request to build vis_data */
+		case 'vis_data':
 			process.send({ type: 'vis_data', data: visBuilder.buildVisData(data.project, data.root) });
 			break;
 
