@@ -1,9 +1,9 @@
 /**
-*  Javap-Parser.js
-*     
-*     parse a directory of '.class' files
-*       using 'javap' command into JSON format
-*/
+ *  Javap-Parser.js
+ *     
+ *     parse a directory of '.class' files
+ *       using 'javap' command into JSON format
+ */
 const fs = require('fs');
 const path = require('path');
 const execSync = require('child_process').execSync;

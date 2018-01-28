@@ -1,3 +1,10 @@
+/**
+ *
+ *  Project.js 
+ *
+ *     Class that represents a Java project to be
+ *      built/loaded into the visualization.
+ */
 const javapParser = require('./javap-parser/Javap-Parser.js');
 const { Profiler } = require('./profiler/Profiler.js');
 
@@ -13,7 +20,7 @@ exports.Project = class Project {
 	 * @param {Array<string>} runargs  runtime arguements
 	 * @param {Array<string>} packages  packages to trace
 	 */
-	constructor (class_dirs, src_dirs, classpath, jar, runargs, packages) {
+	constructor(class_dirs, src_dirs, classpath, jar, runargs, packages) {
 
 		this.class_dirs = class_dirs;
 		this.src_dirs = src_dirs;
@@ -37,7 +44,7 @@ exports.Project = class Project {
 	 * @param {string} appPath  path of app root
 	 * @param {Function} callback(err, data)  callback function
 	 */
-	static buildProject (proj, appPath, callback) {
+	static buildProject(proj, appPath, callback) {
 
 		let ret_data = {};
 

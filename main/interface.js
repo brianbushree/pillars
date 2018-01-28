@@ -1,11 +1,18 @@
+/**
+ *
+ *  interface.js
+ *
+ *     Handle events from main window and dictate
+ *      control flow.
+ */
 const electron = require('electron');
 const { ipcMain } = electron;
 const { app } = electron;
 const dialog = electron.dialog;
-const profiler = require('./profiler/Profiler.js');
-const main = require('./main.js');
 const fs = require('fs');
 const { fork } = require('child_process');
+const main = require('./main.js');
+const profiler = require('./profiler/Profiler.js');
 const { Project } = require('./Project.js');
 const { ProjectStore } = require('./ProjectStore.js');
 

@@ -1,13 +1,16 @@
+/**
+ * 
+ * ProjectStore.js
+ *
+ *  Directory used to persistenly store Projects
+ *   as '.project' files.
+ *
+ *  This will persistently store only the user input,
+ *   not class/exec/vis data.
+ */
 const fs = require('fs');
 const path = require('path');
 
-/**
- * Directory used to persistenly store Projects
- *  as '.project' files.
- *
- *  This will store only the user input,
- *  not exec/vis data.
- */
 exports.ProjectStore = class ProjectStore {
 	
 	/**

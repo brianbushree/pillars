@@ -1,9 +1,10 @@
 /**
-*
-*  Vis-Builder
-*
-*     This builds/filters data to input to the visualization. 
-*/
+ *
+ *  Vis-Builder.js
+ *
+ *     This builds/filters vis-data to input 
+ *      to the visualization. 
+ */
 
 /**
  * Given a built project, build & return visualization data.
