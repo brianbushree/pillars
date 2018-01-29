@@ -16,17 +16,18 @@ function exec(data) {
 
 		/* request to build project */
 		case 'proj_data':
-			Project.buildProject(data.data, data.appPath, function(err, data) {
+			Project.buildProject(data.proj, data.appPath, function(err) {
 			    if (err) {
 			      console.log(err);
 			    }
-			   	process.send({ type: 'proj_data', data: data });
+
+			   	process.send({ type: 'proj_data', proj: data.proj });
 			});
 			break;
 
 		/* request to build vis_data */
 		case 'vis_data':
-			process.send({ type: 'vis_data', data: visBuilder.buildVisData(data.project, data.root) });
+			process.send({ type: 'vis_data', data: visBuilder.buildVisData(data.proj, data.root) });
 			break;
 
 		default:

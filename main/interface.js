@@ -119,10 +119,10 @@ function load_project(event, data, save) {
   }
 
   // make project
-  project = new Project(data.class_dirs, data.src_dirs, data.classpath, data.jar, data.runargs, data.packages);
+  project = new Project(data.class_dirs, data.src_dirs, data.classpath, data.jar, data.runargs, data.packages, null, null);
 
   // send stringified project
-  worker.send({ type: 'proj_data', data: data, appPath: app.getAppPath() });
+  worker.send({ type: 'proj_data', proj: data, appPath: app.getAppPath() });
 
   // load exec window
   main.loadWindow('web/exec.html');
@@ -162,7 +162,7 @@ ipcMain.on('classes-req', function (event, data) {
 });
 
 ipcMain.on('root-select', function (event, root) {
-    worker.send({ type: 'vis_data', project:  project, root: root });
+    worker.send({ type: 'vis_data', proj: project, root: root });
 });
 
 
@@ -210,8 +210,9 @@ worker.on('message', function (data) {
       break;
 
     case 'proj_data':   /* project data complete */
-      project.class_data = data.data.class_data;
-      project.exec_data = data.data.exec_data;
+
+      project = new Project(data.proj.class_dirs, data.proj.src_dirs, data.proj.classpath, data.proj.jar, data.proj.runargs, data.proj.packages, data.proj.class_data, data.proj.exec_data);
+
       main.loadWindow('web/select-root.html');
       break;
 
