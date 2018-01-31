@@ -80,7 +80,7 @@ function buildHierarchyData(project) {
   let node = 0;
 
 
-  node = buildMethod(data, project.exec_data[0], node, '', true);
+  node = buildMethod(data, project.exec_data[0], node, '', true, project.exec_data[0].call);
   return data;
 
 }
@@ -97,12 +97,12 @@ function buildHierarchyData(project) {
  * @param {number} node  unique node value
  * @param {string} prefix  this node's parent
  * @param {boolean} new_thread  true if this method was called by Thread.start()
- * @return {number} node  next node id
+ * @param {Object} caller_info  Object containing file & line of caller
  */
-function buildMethod(node_data, elem, node, prefix, new_thread) {
+function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
 
   prefix += ((node != 0) ? '.' : '') + (node++);
-  node_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time, 'new_thread': new_thread });
+  node_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time, 'new_thread': new_thread , 'call': caller_info });
 
 
   let out = [];
@@ -112,7 +112,7 @@ function buildMethod(node_data, elem, node, prefix, new_thread) {
     if (call.sig == 'Thread.start()') {
 
       // We want to see all created threads
-      node = buildMethod(node_data, call.callees[0], node, prefix, true);
+      node = buildMethod(node_data, call.callees[0], node, prefix, true, call.call);
 
 
     } else {
@@ -123,13 +123,13 @@ function buildMethod(node_data, elem, node, prefix, new_thread) {
         if (temp.length != 0) {
           temp.forEach(function(c) {
             out.push(c);
-            node = buildMethod(node_data, c, node, prefix, false);
+            node = buildMethod(node_data, c, node, prefix, false, c.call);
           });
           temp.length = 0;
         }
 
         out.push(call);
-        node = buildMethod(node_data, call, node, prefix, false);
+        node = buildMethod(node_data, call, node, prefix, false, call.call);
 
       } else {
 

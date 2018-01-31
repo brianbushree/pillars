@@ -108,14 +108,15 @@ exports.Profiler = class Profiler {
    */
   _parseMethodCalls(log) {
 
-    const methodOutRegex = /(.*(?:.*){1}) : start(?=(?:.|\n)*?\1 : (\d+)\n)/gm;
+    //const methodOutRegex = /(.*(?:.*){1}) : start(?=(?:.|\n)*?\1 : (\d+)\n)/gm;
+    const methodOutRegex = /(.*(?:.*){1}) : \((\S+) : (\d+)\)(?=(?:.|\n)*?\1 : (\d+)\n)/gm;
 
     let match;
     let calls = [];
 
     while( (match = methodOutRegex.exec(log)) !== null) {
 
-      this._putMethod(calls, match[1].replace(/^\t+/g, ''), (match[1].match(/\t/g) || []).length, match[2]);
+      this._putMethod(calls, match[1].replace(/^\t+/g, ''), (match[1].match(/\t/g) || []).length, match[4], { 'file': match[2], 'line': match[3] });
 
     }
 
@@ -130,18 +131,19 @@ exports.Profiler = class Profiler {
    * @param {string} sig  signature of the method
    * @param {number} indent  method's level of indentation
    * @param {string} data  time/thread data to include
+   * @param {Object} call  method call info (file/line)
    */
-  _putMethod(arr, sig, indent, data) {
+  _putMethod(arr, sig, indent, data, call) {
 
     if (indent == 0) {
 
       if (sig == "Thread.start()") {
 
-        arr.push({ sig: sig, time: null, callees: this._parseThread(+data) });
+        arr.push({ sig: sig, time: null, call: call, callees: this._parseThread(+data) });
 
       } else {
 
-        arr.push({ sig: sig, time: +data, callees: [] });
+        arr.push({ sig: sig, time: +data, call: call, callees: [] });
 
       }
 
@@ -152,7 +154,7 @@ exports.Profiler = class Profiler {
         return;
       }
 
-      this._putMethod(arr[arr.length - 1].callees, sig, indent - 1, data);
+      this._putMethod(arr[arr.length - 1].callees, sig, indent - 1, data, call);
 
     }
 
