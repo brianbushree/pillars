@@ -139,11 +139,15 @@ exports.Profiler = class Profiler {
 
       if (sig == "Thread.start()") {
 
-        arr.push({ sig: sig, time: null, call: call, callees: this._parseThread(+data) });
+        arr.push({ sig: sig, time: null, call: call, agg: null, callees: this._parseThread(+data) });
 
       } else {
 
-        arr.push({ sig: sig, time: +data, call: call, callees: [] });
+        if (call) {
+          call.line = +call.line;
+        }
+
+        arr.push({ sig: sig, time: +data, call: call, agg: null, callees: [] });
 
       }
 

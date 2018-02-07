@@ -102,18 +102,21 @@ function buildHierarchyData(project) {
 function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
 
   prefix += ((node != 0) ? '.' : '') + (node++);
-  node_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time, 'new_thread': new_thread , 'call': caller_info });
+  node_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time, 'new_thread': new_thread , 'call': caller_info, 'agg': elem.agg });
 
 
   let out = [];
   let temp = [];
+
+  let aggGroup = 0;
+  let agglist;
+
   elem.callees.forEach(function(call, i) {
 
     if (call.sig == 'Thread.start()') {
 
       // We want to see all created threads
-      node = buildMethod(node_data, call.callees[0], node, prefix, true, call.call);
-
+      out.push(call);
 
     } else {
 
@@ -123,19 +126,29 @@ function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
         if (temp.length != 0) {
           temp.forEach(function(c) {
             out.push(c);
-            node = buildMethod(node_data, c, node, prefix, false, c.call);
           });
           temp.length = 0;
         }
 
         out.push(call);
-        node = buildMethod(node_data, call, node, prefix, false, call.call);
 
       } else {
 
         temp.push(call);
 
         if (arrayEquals(temp, out.slice(out.length - temp.length, out.length))) {
+
+          aggGroup++;
+          agglist = out.slice(out.length - temp.length, out.length);
+
+          agglist.forEach(function(e, i) {
+
+            if (e.agg == null) {
+              e.agg = { 'group': aggGroup, times: []};
+            }
+            e.agg.times.push(temp[i].time);
+
+          });
 
           temp.length = 0;
 
@@ -144,6 +157,15 @@ function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
       }
     }
 
+  });
+
+  out.forEach(function (call, i) {
+    if (call.sig == 'Thread.start()') {
+      // We want to see all created threads
+      node = buildMethod(node_data, call.callees[0], node, prefix, true, call.call);
+    } else {
+      node = buildMethod(node_data, call, node, prefix, false, call.call);
+    }
   });
 
   return node;
