@@ -1,6 +1,6 @@
 const {ipcRenderer} = require('electron');
 
-var visData = null;
+let visData = null;
 
 // request data from main process
 ipcRenderer.send('data-req');
@@ -15,35 +15,35 @@ function newRoot() {
 }
 
 // configure size, margin, and circle radius
-var config = {
+let config = {
     w: 1025,
     h: 750,
     r: 4,
     tpad: 50,
     lpad: 300,
     bpad: 50,
-    rpad: 20
+    rpad: 50
 };
 
 // maximum diameter of circle is minimum dimension
 config.d = Math.min(config.w, config.h);
 
-var svg = d3.select("body").select("svg");
+let svg = d3.select("body").select("svg");
 
 // dynamic globals
-var hor = false;
-var parents = [];
-var currentRoot = null;
+let hor = false;
+let parents = [];
+let currentRoot = null;
 
 // setup scales
-var scales = {};
+let scales = {};
 scales.color = {};
 scales.color.class = d3.scaleOrdinal(d3.schemeCategory20c);
 scales.radius = d3.scaleSqrt().range([6, 25]);
 
 // accessor functions for x and y
-var x = function(d) { return d.x; };
-var y = function(d) { return d.y; };
+let x = function(d) { return d.x; };
+let y = function(d) { return d.y; };
 
 function render(data) {
   // convert
@@ -62,7 +62,7 @@ function horToggle() {
 
 function convert(row) {
   row.id = row.name;
-  var parts = row.name.split(".")
+  let parts = row.name.split(".")
   row.name = parts[parts.length - 1];
   return row;
 }
@@ -116,31 +116,31 @@ function callback(error, data) {
     console.log("data:", data.length, data);
 
     // create hierarchy
-    var stratify = d3.stratify()
+    let stratify = d3.stratify()
       .id(function(d) { return d.id; })
       .parentId(function(d) {
         return d.id.substring(0, d.id.lastIndexOf("."));
       });
 
     // convert csv into hierarchy
-    var realroot = stratify(data);
-    var root = selectRoot(realroot.copy(), visData.root);
+    let realroot = stratify(data);
+    let root = selectRoot(realroot.copy(), visData.root);
     console.log("realroot:", realroot);
     console.log("root", root);
 
     svg.attr("width", config.w);
     svg.attr("height", config.h);
 
-    var g = svg.append("g");
+    let g = svg.append("g");
     g.attr("id", "plot");
     g.attr("transform", translate(config.lpad, config.tpad));
 
-    var leg = svg.append("g");
+    let leg = svg.append("g");
     leg.attr("id", "legend");
     leg.attr("transform", translate(0, 50));
 
     // count classes
-    var classes = {};
+    let classes = {};
     root.each(function(d) {
       if (d.data.sig && visData.map[d.data.sig]) {
         classes[visData.map[d.data.sig].parent] = true;
@@ -176,8 +176,10 @@ function getTimeDomain(root) {
 function drawNodes(g, nodes, depth, raise, root) {
 
   // update
-  var select = g.selectAll("circle")
-    .data(nodes)
+  let groups = g.selectAll("g.node-g")
+              .data(nodes);
+
+  groups.select("circle")
       .attr("cx", ((!hor) ? x : y))
       .attr("cy", ((!hor) ? y : x))
       .attr("id", function(d) { return d.data.name; })
@@ -191,7 +193,7 @@ function drawNodes(g, nodes, depth, raise, root) {
         }
       })
       .style("fill", function(d) {
-         var c;
+         let c;
          if (!visData.map[d.data.sig]) {
             c = 'none';
          } else {
@@ -200,11 +202,27 @@ function drawNodes(g, nodes, depth, raise, root) {
          return scales.color.class(c); 
       });
 
-  select.raise();
+  groups.select("text")
+      .text(function(d) { return ((d.data.agg) ? d.data.agg.times.length : ""); })
+      .attr("x", function(d) {
+        let pos = (!hor) ? x(d) : y(d);
+        let r = d3.select(this.parentNode).select("circle").attr("r");
+        return pos + Math.round(r) + 5;
+      })
+      .attr("y", function(d) {
+        let pos = (!hor) ? y(d) : x(d);
+        let r = d3.select(this.parentNode).select("circle").attr("r");
+        return pos + Math.round(r) + 5;
+      });
+
+  groups.raise();
 
   // enter
-  select.enter()
-    .append("circle")
+  let nodeG = groups.enter()
+                        .append("g")
+                        .attr("class", "node-g");
+
+  nodeG.append("circle")
       .attr("cx", ((!hor) ? x : y))
       .attr("cy", ((!hor) ? y : x))
       .attr("id", function(d) { return d.data.name; })
@@ -220,7 +238,7 @@ function drawNodes(g, nodes, depth, raise, root) {
         }
       })
       .style("fill", function(d) {
-         var c;
+         let c;
          if (!visData.map[d.data.sig]) {
             c = 'none';
          } else {
@@ -242,14 +260,14 @@ function drawNodes(g, nodes, depth, raise, root) {
       .on("click", function(d) {
         g.select("#tooltip").remove();
         if (d.depth == 0) {
-          var parent = parents.pop();
+          let parent = parents.pop();
           if (parent != null) {
             drawFromRoot(parent);
           }
         } else {
-          var p = [];
-          var pd = d;
-          for (var i = 0; i < d.depth; i++) {
+          let p = [];
+          let pd = d;
+          for (let i = 0; i < d.depth; i++) {
             p.unshift(pd.parent.copy());
             pd = pd.parent;
           }
@@ -258,15 +276,30 @@ function drawNodes(g, nodes, depth, raise, root) {
         }
       });
 
+  nodeG.append('text')
+        .attr("class", "agg-text")
+        .attr("font-size", 13)
+        .text(function(d) { return ((d.data.agg) ? d.data.agg.times.length : ""); })
+        .attr("x", function(d) {
+          let pos = (!hor) ? x(d) : y(d);
+          let r = d3.select(this.parentNode).select("circle").attr("r");
+          return pos + Math.round(r) + 5;
+        })
+        .attr("y", function(d) {
+          let pos = (!hor) ? y(d) : x(d);
+          let r = d3.select(this.parentNode).select("circle").attr("r");
+          return pos + Math.round(r) + 5;
+        });
+
   // exit
-  select.exit().remove();
+  groups.exit().remove();
 
 }
 
 function drawLinks(g, links, generator) {
 
   // update
-  var paths = g.selectAll("path")
+  let paths = g.selectAll("path")
     .data(links)
     .attr("d", generator);
 
@@ -284,7 +317,7 @@ function drawLinks(g, links, generator) {
 function drawLegend(g, root) {
 
   // get all classes
-  var classes = {};
+  let classes = {};
   root.each(function(d) {
     if (visData.map[d.data.sig]) {
       classes[visData.map[d.data.sig].parent] = true;
@@ -292,7 +325,7 @@ function drawLegend(g, root) {
   });
 
   // update
-  var labels = g.selectAll("g.label")
+  let labels = g.selectAll("g.label")
     .data(Object.keys(classes))
     .attr("transform", function(d,i) { return translate(10, 10+(20*i++)); });
 
@@ -306,7 +339,7 @@ function drawLegend(g, root) {
 
 
   // enter
-  var gs = labels.enter()
+  let gs = labels.enter()
     .append("g")
     .attr("class", "label")
     .attr("transform", function(d,i) { return translate(10, 10+(20*i++)); });
@@ -330,16 +363,16 @@ function drawLegend(g, root) {
 
 function drawTraditionalStraight(id, root, parent) {
 
-  var g = svg.select('#plot');
-  var leg = svg.select('#legend');
-  var nodes = null;
-  var links = null;
+  let g = svg.select('#plot');
+  let leg = svg.select('#legend');
+  let nodes = null;
+  let links = null;
 
-  var w = config.w - config.rpad - config.lpad;
-  var h = config.h - config.tpad - config.bpad;
+  let w = config.w - config.rpad - config.lpad;
+  let h = config.h - config.tpad - config.bpad;
 
   // setup node layout generator
-  var tree = d3.tree()
+  let tree = d3.tree()
     .size([ ((!hor) ? w : h),
             ((!hor) ? h : w)  ])
     .separation(function separation(a, b) {
@@ -361,12 +394,12 @@ function drawTraditionalStraight(id, root, parent) {
   }
 
   // normal line generator
-  var line = d3.line()
+  let line = d3.line()
     .x(((!hor) ? x : y))
     .y(((!hor) ? y : x));
 
   // create line generator
-  var straightLine = function(d) {
+  let straightLine = function(d) {
     return line([d.source, d.target]);
   }
 
