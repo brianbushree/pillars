@@ -11,6 +11,11 @@ b {
   font-weight: 900;
 }
 
+g.node-g text {
+  font-size: .8em;
+  fill: #676767;
+}
+
 .node {
   stroke: silver;
 /*  stroke-width: 1px;*/

@@ -278,7 +278,6 @@ function drawNodes(g, nodes, depth, raise, root) {
 
   nodeG.append('text')
         .attr("class", "agg-text")
-        .attr("font-size", 13)
         .text(function(d) { return ((d.data.agg) ? d.data.agg.times.length : ""); })
         .attr("x", function(d) {
           let pos = (!hor) ? x(d) : y(d);
