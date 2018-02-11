@@ -144,7 +144,7 @@ function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
           agglist.forEach(function(e, i) {
 
             if (e.agg == null) {
-              e.agg = { 'group': aggGroup, times: []};
+              e.agg = { 'group': aggGroup, times: [ e.time ]};
             }
             e.agg.times.push(temp[i].time);
 
@@ -164,6 +164,16 @@ function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
       // We want to see all created threads
       node = buildMethod(node_data, call.callees[0], node, prefix, true, call.call);
     } else {
+
+      // aggregate into call.time
+      if (call.agg) {
+        let sum = 0;
+        call.agg.times.forEach(function(t) {
+          sum += t;
+        });
+        call.time = sum;
+      }
+    
       node = buildMethod(node_data, call, node, prefix, false, call.call);
     }
   });
