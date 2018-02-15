@@ -5,6 +5,7 @@
  *     This builds/filters vis-data to input 
  *      to the visualization. 
  */
+const fs = require('fs');
 
 /**
  * Given a built project, build & return visualization data.
@@ -14,7 +15,8 @@
 exports.buildVisData = function buildVisData(project) {
 
   let vis_data = {};
-  vis_data['map'] = buildDataMap(project);
+  vis_data['mthd_map'] = buildDataMap(project);
+  vis_data['class_map'] = buildClassMap(project);
   vis_data['data'] = buildHierarchyData(project);
 
   return vis_data;
@@ -22,48 +24,67 @@ exports.buildVisData = function buildVisData(project) {
 }
 
 /**
- * Given a built project, make class-data map.
+ * Given a built project, make class-data class map.
  *
  * @param {Object} project  built project
- * @return {Object} data_map  Map<sig, data>
+ * @return {Object} class_map  Map<name, data>
+ */
+function buildClassMap(project) {
+
+  let class_map = {};
+
+  // add class data to map (and read source files)
+  project.class_data.forEach(function(cls) {
+    class_map[cls.name] = cls;
+    class_map[cls.name].src_content = fs.readFileSync(cls.src, 'utf8');
+  });
+
+  return class_map;
+}
+
+/**
+ * Given a built project, make class-data method map.
+ *
+ * @param {Object} project  built project
+ * @return {Object} mthd_map  Map<sig, data>
  */
 function buildDataMap(project) {
 
-  let data_map = {};
+  let mthd_map = {};
 
   // add javap data to map
   project.class_data.forEach(function(cls) {
     cls.methods.forEach(function (mthd) {
-      data_map[mthd.sig] = mthd;
+      mthd_map[mthd.sig] = mthd;
     });
   });
 
   // add all callees
-  addToMap(data_map, project.exec_data[0]);
+  addToMap(mthd_map, project.exec_data[0]);
 
-  return data_map;
+  return mthd_map;
 
 }
 
 /**
  * Check all callees for missing entry
- *  in data_map. Add default if necessary.
+ *  in mthd_map. Add default if necessary.
  *
- * @param {Object} data_map  Map<sig, data> to add to
+ * @param {Object} mthd_map  Map<sig, data> to add to
  * @param {Object} elem  method Object
  */
-function addToMap(data_map, elem) {
+function addToMap(mthd_map, elem) {
 
-  if (!data_map[elem.sig]) {
+  if (!mthd_map[elem.sig]) {
 
-    data_map[elem.sig] = {};
+    mthd_map[elem.sig] = {};
     let t = elem.sig.split('(')[0];
-    data_map[elem.sig].parent = t.substring(0, t.lastIndexOf('.'));
+    mthd_map[elem.sig].parent = t.substring(0, t.lastIndexOf('.'));
 
   }
 
   elem.callees.forEach(function(e, i) {
-    addToMap(data_map, e);
+    addToMap(mthd_map, e);
   });
 
 }

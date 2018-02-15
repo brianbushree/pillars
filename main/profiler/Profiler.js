@@ -108,7 +108,6 @@ exports.Profiler = class Profiler {
    */
   _parseMethodCalls(log) {
 
-    //const methodOutRegex = /(.*(?:.*){1}) : start(?=(?:.|\n)*?\1 : (\d+)\n)/gm;
     const methodOutRegex = /(.*(?:.*){1}) : \((\S+) : (\d+)\)(?=(?:.|\n)*?\1 : (\d+)\n)/gm;
 
     let match;
@@ -116,7 +115,7 @@ exports.Profiler = class Profiler {
 
     while( (match = methodOutRegex.exec(log)) !== null) {
 
-      this._putMethod(calls, match[1].replace(/^\t+/g, ''), (match[1].match(/\t/g) || []).length, match[4], { 'file': match[2], 'line': match[3] });
+      this._putMethod(calls, match[1].replace(/^\t+/g, ''), (match[1].match(/\t/g) || []).length, match[4], { 'file': match[2], 'line': +match[3] });
 
     }
 

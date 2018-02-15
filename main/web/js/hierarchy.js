@@ -80,7 +80,7 @@ function selectRoot(root, sel) {
 
     // filter by class & set new height
     for (let i = 0; i < root.children.length; i++) {
-      if (visData.map[root.children[i].data.sig] &&visData.map[root.children[i].data.sig].parent == sel.value) {
+      if (visData.mthd_map[root.children[i].data.sig] &&visData.mthd_map[root.children[i].data.sig].parent == sel.value) {
         newChildren.push(root.children[i]);
 
         if (newHeight < root.children[i].height) {
@@ -113,6 +113,7 @@ function callback(error, data) {
         return;
     }
 
+    console.log(visData);
     console.log("data:", data.length, data);
 
     // create hierarchy
@@ -142,8 +143,8 @@ function callback(error, data) {
     // count classes
     let classes = {};
     root.each(function(d) {
-      if (d.data.sig && visData.map[d.data.sig]) {
-        classes[visData.map[d.data.sig].parent] = true;
+      if (d.data.sig && visData.mthd_map[d.data.sig]) {
+        classes[visData.mthd_map[d.data.sig].parent] = true;
       } else {
         console.log(d);
       } 
@@ -194,10 +195,10 @@ function drawNodes(g, nodes, depth, raise, root) {
       })
       .style("fill", function(d) {
          let c;
-         if (!visData.map[d.data.sig]) {
+         if (!visData.mthd_map[d.data.sig]) {
             c = 'none';
          } else {
-            c = visData.map[d.data.sig].parent;
+            c = visData.mthd_map[d.data.sig].parent;
          }
          return scales.color.class(c); 
       });
@@ -239,10 +240,10 @@ function drawNodes(g, nodes, depth, raise, root) {
       })
       .style("fill", function(d) {
          let c;
-         if (!visData.map[d.data.sig]) {
+         if (!visData.mthd_map[d.data.sig]) {
             c = 'none';
          } else {
-            c = visData.map[d.data.sig].parent;
+            c = visData.mthd_map[d.data.sig].parent;
          }
          return scales.color.class(c); 
       })
@@ -318,8 +319,8 @@ function drawLegend(g, root) {
   // get all classes
   let classes = {};
   root.each(function(d) {
-    if (visData.map[d.data.sig]) {
-      classes[visData.map[d.data.sig].parent] = true;
+    if (visData.mthd_map[d.data.sig]) {
+      classes[visData.mthd_map[d.data.sig].parent] = true;
     }
   });
 
