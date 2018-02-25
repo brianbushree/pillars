@@ -179,11 +179,12 @@ function getTimeDomain(root) {
 
 function drawNodes(g, nodes, depth, raise, root) {
 
-  // update
-  let groups = g.selectAll("g.node-g")
+  let all;
+  let oldGroups = g.selectAll("g.node-g")
               .data(nodes);
 
-  groups.each(function(d, j) {
+  // update circle/square
+  oldGroups.each(function(d, j) {
     let node = d3.select(this);
     node.selectAll("circle,rect").remove();
     if (!d.data.new_thread) {
@@ -193,17 +194,12 @@ function drawNodes(g, nodes, depth, raise, root) {
     }
   });
 
-  drawCircles(groups.select("circle"), g, raise);
-  drawRects(groups.select("rect"), g, raise);
-  drawText(groups.select("text"));
-  groups.raise();
-
   // enter
-  let nodeG = groups.enter()
+  let newGroups = oldGroups.enter()
                       .append("g")
                       .attr("class", "node-g");
 
-  nodeG.append(function(d) {
+  newGroups.append(function(d) {
     let elem;
     if (!d.data.new_thread) {
       elem = "circle";
@@ -213,13 +209,17 @@ function drawNodes(g, nodes, depth, raise, root) {
     return document.createElementNS("http://www.w3.org/2000/svg", elem);
   });
 
-  drawCircles(nodeG.select("circle"), g, raise);
-  drawRects(nodeG.select("rect"), g, raise);
-  drawText(nodeG.append('text'));
+  newGroups.append('text')
 
+  // draw all
+  all = oldGroups.merge(newGroups)
+  drawCircles(all.select("circle"), g, raise);
+  drawRects(all.select("rect"), g, raise);
+  drawText(all.select("text"));
+  all.raise();
 
   // exit
-  groups.exit().remove();
+  oldGroups.exit().remove();
 
 }
 
