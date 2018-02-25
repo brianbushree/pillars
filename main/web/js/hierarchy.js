@@ -45,6 +45,9 @@ scales.radius = d3.scaleSqrt().range([6, 25]);
 let x = function(d) { return d.x; };
 let y = function(d) { return d.y; };
 
+// radius to area
+let rectDimens = function(v) { return (3.14 / 2) * scales.radius(v); };
+
 function render(data) {
   // convert
   data.data.forEach(function(e, i) {
@@ -180,120 +183,148 @@ function drawNodes(g, nodes, depth, raise, root) {
   let groups = g.selectAll("g.node-g")
               .data(nodes);
 
-  groups.select("circle")
-      .attr("cx", ((!hor) ? x : y))
-      .attr("cy", ((!hor) ? y : x))
-      .attr("id", function(d) { return d.data.name; })
-      .attr("sig", function(d) { return d.data.sig; })
-      .attr("time", function(d) { return d.data.time; })
-      .attr("r", function(d) {
-        if (d.data.time) {
-          return scales.radius(d.data.time);
-        } else {
-          return scales.radius.range()[0];
-        }
-      })
-      .style("fill", function(d) {
-         let c;
-         if (!visData.mthd_map[d.data.sig]) {
-            c = 'none';
-         } else {
-            c = visData.mthd_map[d.data.sig].parent;
-         }
-         return scales.color.class(c); 
-      });
+  groups.each(function(d, j) {
+    let node = d3.select(this);
+    node.selectAll("circle,rect").remove();
+    if (!d.data.new_thread) {
+      node.append("circle");
+    } else {
+      node.append("rect");
+    }
+  });
 
-  groups.select("text")
-      .text(function(d) { return ((d.data.agg) ? d.data.agg.times.length : ""); })
-      .attr("x", function(d) {
-        let pos = (!hor) ? x(d) : y(d);
-        let r = d3.select(this.parentNode).select("circle").attr("r");
-        return pos + Math.round(r) + 5;
-      })
-      .attr("y", function(d) {
-        let pos = (!hor) ? y(d) : x(d);
-        let r = d3.select(this.parentNode).select("circle").attr("r");
-        return pos + Math.round(r) + 5;
-      });
-
+  drawCircles(groups.select("circle"), g, raise);
+  drawRects(groups.select("rect"), g, raise);
+  drawText(groups.select("text"));
   groups.raise();
 
   // enter
   let nodeG = groups.enter()
-                        .append("g")
-                        .attr("class", "node-g");
+                      .append("g")
+                      .attr("class", "node-g");
 
-  nodeG.append("circle")
-      .attr("cx", ((!hor) ? x : y))
-      .attr("cy", ((!hor) ? y : x))
-      .attr("id", function(d) { return d.data.name; })
-      .attr("sig", function(d) { return d.data.sig; })
-      .attr("time", function(d) { return d.data.time; })
-      .attr("class", function(d)
-        { return ((d.depth == 0) ? "root " : "") + "node" + ((d.data.new_thread) ? " newthread" : ""); })
-      .attr("r", function(d) {
-        if (d.data.time) {
-          return scales.radius(d.data.time);
-        } else {
-          return scales.radius.range()[0];
-        }
-      })
-      .style("fill", function(d) {
-         let c;
-         if (!visData.mthd_map[d.data.sig]) {
-            c = 'none';
-         } else {
-            c = visData.mthd_map[d.data.sig].parent;
-         }
-         return scales.color.class(c); 
-      })
-      .on("mouseover.tooltip", function(d) {
-        show_tooltip(g, d3.select(this));
-        d3.select(this).classed("selected", true);
-        if (raise) {
-          d3.select(this).raise();
-        }
-      })
-      .on("mouseout.tooltip", function(d) {
-        g.select("#tooltip").remove();
-        d3.select(this).classed("selected", false);
-      })
-      .on("click", function(d) {
-        g.select("#tooltip").remove();
-        if (d.depth == 0) {
-          let parent = parents.pop();
-          if (parent != null) {
-            drawFromRoot(parent);
-          }
-        } else {
-          let p = [];
-          let pd = d;
-          for (let i = 0; i < d.depth; i++) {
-            p.unshift(pd.parent.copy());
-            pd = pd.parent;
-          }
-          parents = parents.concat(p);
-          drawFromRoot(d);
-        }
-      });
+  nodeG.append(function(d) {
+    let elem;
+    if (!d.data.new_thread) {
+      elem = "circle";
+    } else {
+      elem = "rect";
+    }
+    return document.createElementNS("http://www.w3.org/2000/svg", elem);
+  });
 
-  nodeG.append('text')
-        .attr("class", "agg-text")
-        .text(function(d) { return ((d.data.agg) ? d.data.agg.times.length : ""); })
-        .attr("x", function(d) {
-          let pos = (!hor) ? x(d) : y(d);
-          let r = d3.select(this.parentNode).select("circle").attr("r");
-          return pos + Math.round(r) + 5;
-        })
-        .attr("y", function(d) {
-          let pos = (!hor) ? y(d) : x(d);
-          let r = d3.select(this.parentNode).select("circle").attr("r");
-          return pos + Math.round(r) + 5;
-        });
+  drawCircles(nodeG.select("circle"), g, raise);
+  drawRects(nodeG.select("rect"), g, raise);
+  drawText(nodeG.append('text'));
+
 
   // exit
   groups.exit().remove();
 
+}
+
+function drawText(sel) {
+  sel
+    .attr("class", "agg-text")
+    .text(function(d) { return ((d.data.agg) ? d.data.agg.times.length : ""); })
+    .attr("x", function(d) {
+      let pos = (!hor) ? x(d) : y(d);
+      let offset;
+      if (!d.data.new_thread) {
+        offset = d3.select(this.parentNode).select("circle").attr("r");
+      } else {
+        offset = d3.select(this.parentNode).select("rect").attr("width");
+      }
+      return pos + Math.round(offset) + 5;
+    })
+    .attr("y", function(d) {
+      let pos = (!hor) ? y(d) : x(d);
+      let offset;
+      if (!d.data.new_thread) {
+        offset = d3.select(this.parentNode).select("circle").attr("r");
+      } else {
+        offset = d3.select(this.parentNode).select("rect").attr("width");
+      }
+      return pos + Math.round(offset) + 5;
+    });
+}
+
+function drawNode(sel, g, raise) {
+  sel
+    .attr("id", function(d) { return d.data.name; })
+    .attr("sig", function(d) { return d.data.sig; })
+    .attr("time", function(d) { return d.data.time; })
+    .attr("class", function(d)
+      { return ((d.depth == 0) ? "root " : "") + "node" + ((d.data.new_thread) ? " newthread" : ""); })
+    .style("fill", function(d) {
+       let c;
+       if (!visData.mthd_map[d.data.sig]) {
+          c = 'none';
+       } else {
+          c = visData.mthd_map[d.data.sig].parent;
+       }
+       return scales.color.class(c); 
+    })
+    .on("mouseover.tooltip", function(d) {
+      show_tooltip(g, d3.select(this));
+      d3.select(this).classed("selected", true);
+      if (raise) {
+        d3.select(this).raise();
+      }
+    })
+    .on("mouseout.tooltip", function(d) {
+      g.select("#tooltip").remove();
+      d3.select(this).classed("selected", false);
+    })
+    .on("click", function(d) {
+      g.select("#tooltip").remove();
+      if (d.depth == 0) {
+        let parent = parents.pop();
+        if (parent != null) {
+          drawFromRoot(parent);
+        }
+      } else {
+        let p = [];
+        let pd = d;
+        for (let i = 0; i < d.depth; i++) {
+          p.unshift(pd.parent.copy());
+          pd = pd.parent;
+        }
+        parents = parents.concat(p);
+        drawFromRoot(d);
+      }
+    });
+}
+
+function drawCircles(sel, g, raise) {
+  sel
+    .attr("cx", ((!hor) ? x : y))
+    .attr("cy", ((!hor) ? y : x))
+    .attr("r", function(d) {
+      if (d.data.time) {
+        return scales.radius(d.data.time);
+      } else {
+        return scales.radius.range()[0];
+      }
+    });
+
+  drawNode(sel, g, raise);
+}
+
+function drawRects(sel, g, raise) {
+  sel
+    .attr("width", function(d) { return rectDimens(d.data.time); })
+    .attr("height", function(d) { return rectDimens(d.data.time); })
+    .attr("x", function(d) {
+      return ((!hor) ? x(d) : y(d)) - 
+              rectDimens(d.data.time)/2;
+    })
+    .attr("y", function(d) {
+      return ((!hor) ? y(d) : x(d)) -
+               rectDimens(d.data.time)/2;
+    })
+    
+    drawNode(sel, g, raise);
 }
 
 function drawLinks(g, links, generator) {
