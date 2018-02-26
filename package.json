@@ -11,6 +11,7 @@
     "electron": "^1.6.15"
   },
   "dependencies": {
-    "ipc": "0.0.1"
+    "ipc": "0.0.1",
+    "node-syntaxhighlighter": "^0.8.1"
   }
 }

@@ -1,4 +1,5 @@
 const {ipcRenderer} = require('electron');
+const nsh = require('node-syntaxhighlighter');
 
 let visData = null;
 
@@ -161,6 +162,34 @@ function drawFromRoot(root) {
   currentRoot = root;
   scales.radius.domain(getTimeDomain(root));
   drawTraditionalStraight("traditional", root.copy());
+  updateCodeView(root)
+}
+
+function updateCodeView(root) {
+  let block = document.getElementById("code-block");
+  let cls = visData.class_map[visData.mthd_map[root.data.sig].parent];
+
+  if (cls) {
+    block.innerHTML = nsh.highlight(cls.src_content, nsh.getLanguage('java'));
+  } else {
+    console.log("ERROR");
+  }
+}
+
+function highlightLineNumber(lineNum) {
+  let block = document.getElementById("code-block");
+  let line = a = d3.selectAll("div.line.number" + lineNum);
+  if (!line) {
+    console.log("Line out of bounds!")
+  } else {
+    line.classed("highlighted", true);
+    block.parentNode.scrollTop = line.node().offsetTop - 200;
+  }
+}
+
+function unhighlightLines() {
+  let line = a = d3.selectAll("div.line");
+  line.classed("highlighted", false);
 }
 
 function getTimeDomain(root) {
@@ -271,10 +300,17 @@ function drawNode(sel, g, raise) {
       if (raise) {
         d3.select(this).raise();
       }
+
+      if (d.depth != 0) {
+        highlightLineNumber(d.data.call.line);
+      }
     })
     .on("mouseout.tooltip", function(d) {
       g.select("#tooltip").remove();
       d3.select(this).classed("selected", false);
+      if (d.depth != 0) {
+        unhighlightLines();
+      }
     })
     .on("click", function(d) {
       g.select("#tooltip").remove();

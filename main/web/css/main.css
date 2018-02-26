@@ -1,3 +1,25 @@
+div#sidebar {
+  margin-top: 25px;
+  display: inline-block;
+  vertical-align: top;
+  width: 500px;
+  height: 750px;
+  overflow-y: scroll;
+}
+
+div#sidebar div#code-block {
+}
+
+.syntaxhighlighter .line.highlighted.alt1, .syntaxhighlighter .line.highlighted.alt2 {
+    background-color: rgb(4, 108, 134) !important;
+}
+
+div#vis {
+  display: inline-block;
+}
+
+
+
 path.link {
   stroke:#ccc;
 }

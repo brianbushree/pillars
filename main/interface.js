@@ -218,7 +218,7 @@ worker.on('message', function (data) {
 
     case 'vis_data':    /* vis data complete */
       project.visData = data.data;
-      main.loadWindowResize("web/vis.html", 1050, 800);
+      main.loadWindowResize("web/vis.html", 1650, 800);
       break;
 
     default:
