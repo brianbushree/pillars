@@ -1,6 +1,8 @@
 # pillars
 Desktop app allowing users to visualize class structure and call hierarchy of Java projects.
 
+![sample](https://github.com/brianbushree/pillars/blob/master/sample.png)
+
 ## Resources
 * [Electron](https://electron.atom.io/) - Desktop application framework (built on [Chromium](https://www.chromium.org/Home))
 * [call-hierarchy-printer](https://github.com/pbadenski/call-hierarchy-printer) - print a method's callees
