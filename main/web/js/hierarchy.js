@@ -17,11 +17,11 @@ function newRoot() {
 
 // configure size, margin, and circle radius
 let config = {
-    w: 1025,
+    w: 800,
     h: 750,
     r: 4,
     tpad: 50,
-    lpad: 300,
+    lpad: 200,
     bpad: 50,
     rpad: 50
 };
