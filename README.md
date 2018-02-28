@@ -5,8 +5,6 @@ Desktop app allowing users to visualize class structure and call hierarchy of Ja
 
 ## Resources
 * [Electron](https://electron.atom.io/) - Desktop application framework (built on [Chromium](https://www.chromium.org/Home))
-* [call-hierarchy-printer](https://github.com/pbadenski/call-hierarchy-printer) - print a method's callees
-* [React.js](https://facebook.github.io/react/) - DOM render library
 * [D3](https://d3js.org/) - SVG visualization library
 
 ## Purpose/Goal
