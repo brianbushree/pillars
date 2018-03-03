@@ -19,9 +19,8 @@ function newRoot() {
 let config = {
     w: 800,
     h: 750,
-    r: 4,
     tpad: 50,
-    lpad: 200,
+    lpad: 150,
     bpad: 50,
     rpad: 50
 };
@@ -162,30 +161,28 @@ function drawFromRoot(root) {
   currentRoot = root;
   scales.radius.domain(getTimeDomain(root));
   drawTraditionalStraight("traditional", root.copy());
-  updateCodeView(root)
+  updateCodeView(root);
 }
 
 function updateCodeView(root) {
+  let label = document.getElementById("code-label");
   let block = document.getElementById("code-block");
   let cls = visData.class_map[visData.mthd_map[root.data.sig].parent];
 
-  if (cls) {
-    block.innerHTML = nsh.highlight(cls.src_content, nsh.getLanguage('java'));
-  } else {
-    console.log("ERROR");
-  }
+  block.innerHTML = nsh.highlight(cls.src_content, nsh.getLanguage('java'));
+  label.innerText = cls.src.substring(cls.src.lastIndexOf("/")+1, cls.src.length);
 }
 
 function highlightLineNumber(lineNum) {
   unhighlightLines();
 
-  let block = document.getElementById("code-block");
+  let cont = document.getElementById("code-block");
   let line = d3.selectAll("div.line.number" + lineNum);
   if (!line) {
     console.log("Line out of bounds!")
   } else {
     line.classed("highlighted", true);
-    block.parentNode.scrollTop = line.node().offsetTop - 200;
+    cont.parentNode.scrollTop = line.node().offsetTop - 400;
   }
 }
 
@@ -303,7 +300,11 @@ function drawNode(sel, g, raise) {
         d3.select(this).raise();
       }
 
-      if (d.depth != 0) {
+      if (d.parent != null) {
+        updateCodeView(d.parent);
+      }
+
+      if (d.data.call.line != 0) {
         highlightLineNumber(d.data.call.line);
       }
     })
@@ -393,7 +394,7 @@ function drawLegend(g, root) {
   // update
   let labels = g.selectAll("g.label")
     .data(Object.keys(classes))
-    .attr("transform", function(d,i) { return translate(10, 10+(20*i++)); });
+    .attr("transform", function(d,i) { return translate(5, 10+(20*i++)); });
 
   labels.select("rect")
     .attr("fill", function(d) {
@@ -408,7 +409,7 @@ function drawLegend(g, root) {
   let gs = labels.enter()
     .append("g")
     .attr("class", "label")
-    .attr("transform", function(d,i) { return translate(10, 10+(20*i++)); });
+    .attr("transform", function(d,i) { return translate(5, 10+(20*i++)); });
 
   gs.append("rect")
     .attr("width", 10)
