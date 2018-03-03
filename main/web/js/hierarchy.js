@@ -177,8 +177,10 @@ function updateCodeView(root) {
 }
 
 function highlightLineNumber(lineNum) {
+  unhighlightLines();
+
   let block = document.getElementById("code-block");
-  let line = a = d3.selectAll("div.line.number" + lineNum);
+  let line = d3.selectAll("div.line.number" + lineNum);
   if (!line) {
     console.log("Line out of bounds!")
   } else {
@@ -188,7 +190,7 @@ function highlightLineNumber(lineNum) {
 }
 
 function unhighlightLines() {
-  let line = a = d3.selectAll("div.line");
+  let line = d3.selectAll("div.line");
   line.classed("highlighted", false);
 }
 
@@ -308,9 +310,6 @@ function drawNode(sel, g, raise) {
     .on("mouseout.tooltip", function(d) {
       g.select("#tooltip").remove();
       d3.select(this).classed("selected", false);
-      if (d.depth != 0) {
-        unhighlightLines();
-      }
     })
     .on("click", function(d) {
       g.select("#tooltip").remove();

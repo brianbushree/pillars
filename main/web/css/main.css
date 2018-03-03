@@ -7,18 +7,25 @@ div#sidebar {
   overflow-y: scroll;
 }
 
-div#sidebar div#code-block {
+div#code-cont {
+  display: inline-block;
+  vertical-align: top;
+  overflow-y: scroll;
 }
 
-.syntaxhighlighter .line.highlighted.alt1, .syntaxhighlighter .line.highlighted.alt2 {
-    background-color: rgb(4, 108, 134) !important;
+.syntaxhighlighter {
+  font-size: .6em !important;
+}
+
+#code-label {
+  position: fixed;
+  top:15px;
+  left: 250px;
 }
 
 div#vis {
   display: inline-block;
 }
-
-
 
 path.link {
   stroke:#ccc;
