@@ -300,11 +300,8 @@ function drawNode(sel, g, raise) {
         d3.select(this).raise();
       }
 
-      if (d.parent != null) {
+      if (d.parent != null && d.data.call.line != 0) {
         updateCodeView(d.parent);
-      }
-
-      if (d.data.call.line != 0) {
         highlightLineNumber(d.data.call.line);
       }
     })

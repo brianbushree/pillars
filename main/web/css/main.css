@@ -51,7 +51,7 @@ g.node-g text {
 
 .node {
   stroke: silver;
-/*  stroke-width: 1px;*/
+  stroke-width: 1px;
 }
 
 .link {
