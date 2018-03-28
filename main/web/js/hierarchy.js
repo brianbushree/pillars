@@ -10,11 +10,6 @@ ipcRenderer.on('data-res', function (event, data) {
   render(data);
 });
 
-// select a new root
-function newRoot() {
-  ipcRenderer.send('new_root');
-}
-
 // configure size, margin, and circle radius
 let config = {
     w: 800,
@@ -70,46 +65,6 @@ function convert(row) {
   return row;
 }
 
-function selectRoot(root, sel) {
-
-  if (!sel) {
-    return root;
-  }
-
-  if (sel.type == 'class') {
-
-    let newChildren = [];
-    let newHeight = 0;
-
-    // filter by class & set new height
-    for (let i = 0; i < root.children.length; i++) {
-      if (visData.mthd_map[root.children[i].data.sig] &&visData.mthd_map[root.children[i].data.sig].parent == sel.value) {
-        newChildren.push(root.children[i]);
-
-        if (newHeight < root.children[i].height) {
-          newHeight = root.children[i].height;
-        }
-      }
-    }
-
-    root.children = newChildren;
-    root.height = newHeight;
-
-  } else {
-
-    // find method by sig
-    for (let i = 0; i < root.children.length; i++) {
-      if (root.children[i].data.sig == sel.value) {
-        root = root.children[i];
-        break;
-      }
-    }
-
-  }
-
-  return root;
-}
-
 function callback(error, data) {
     if (error) {
         console.warn(file, error);
@@ -128,7 +83,7 @@ function callback(error, data) {
 
     // convert csv into hierarchy
     let realroot = stratify(data);
-    let root = selectRoot(realroot.copy(), visData.root);
+    let root = realroot.copy();
     console.log("realroot:", realroot);
     console.log("root", root);
 

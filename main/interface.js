@@ -23,7 +23,7 @@ let proj = null;
 
 /* 
   
-    1. Splash page
+    1. Intro page
 
 */
 
@@ -137,7 +137,7 @@ ipcMain.on('load_project', load_project);
 
 let exec_buf = '';
 
-ipcMain.on('exec_send', function(event, val) {
+ipcMain.on('exec_send', function (event, val) {
   exec_buf += val;
   worker.stdin.write(val);
 });
@@ -146,38 +146,16 @@ ipcMain.on('exec_req', function (event, root) {
   event.sender.send('exec-res', exec_buf);
 });
 
-/*
-    
-    4. Scoping - select root
-
-        TODO : is this necessary?
-
-*/
-
-/* -------------------------------------------------*/
-/* select-root.html                                 */
-/* -------------------------------------------------*/
-ipcMain.on('classes-req', function (event, data) {
-  event.sender.send('classes-res', project.getClasses());
-});
-
-ipcMain.on('root-select', function (event, root) {
-    worker.send({ type: 'vis_data', proj: project, root: root });
-});
-
 
 /*
     
-    5. Visualization
+    4. Visualization
 
 */
 
 /* -------------------------------------------------*/
 /* vis.html                                         */
 /* -------------------------------------------------*/
-ipcMain.on('new_root', function (event, root) {
-   main.loadWindow('web/select-root.html');
-});
 
 ipcMain.on('data-req', function (event) {
   event.sender.send('data-res', project.visData);
@@ -212,12 +190,8 @@ worker.on('message', function (data) {
     case 'proj_data':   /* project data complete */
 
       project = new Project(data.proj.class_dirs, data.proj.src_dirs, data.proj.classpath, data.proj.jar, data.proj.runargs, data.proj.packages, data.proj.class_data, data.proj.exec_data);
+      project.visData = data.proj.visData;
 
-      main.loadWindow('web/select-root.html');
-      break;
-
-    case 'vis_data':    /* vis data complete */
-      project.visData = data.data;
       main.loadWindowResize("web/vis.html", 1200, 800);
       break;
 

@@ -21,13 +21,10 @@ function exec(data) {
 			      console.log(err);
 			    }
 
+			   	data.proj.visData = visBuilder.buildVisData(data.proj);
+
 			   	process.send({ type: 'proj_data', proj: data.proj });
 			});
-			break;
-
-		/* request to build vis_data */
-		case 'vis_data':
-			process.send({ type: 'vis_data', data: visBuilder.buildVisData(data.proj, data.root) });
 			break;
 
 		default:
