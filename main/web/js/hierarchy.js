@@ -3,12 +3,48 @@ const nsh = require('node-syntaxhighlighter');
 
 let visData = null;
 
+/********************************************************/
+/*  Interface                                           */
+/********************************************************/
+
 // request data from main process
 ipcRenderer.send('data-req');
 ipcRenderer.on('data-res', function (event, data) {
   visData = data;
   render(data);
 });
+
+// render the visualization
+function render(data) {
+  // convert
+  data.data.forEach(function(e, i) {
+    e.name = e.id;
+    e = convert(e);
+  });
+
+  main(null, visData.data); 
+}
+
+// convert a row
+function convert(row) {
+  row.id = row.name;
+  let parts = row.name.split(".")
+  row.name = parts[parts.length - 1];
+  return row;
+}
+
+// reorient (user-event)
+function horToggle() {
+  hor = !hor;
+  drawFromRoot(currentRoot);
+}
+
+/********************************************************/
+
+
+/********************************************************/
+/*  Vis                                                 */
+/********************************************************/
 
 // configure size, margin, and circle radius
 let config = {
@@ -43,29 +79,7 @@ let y = function(d) { return d.y; };
 // radius to area
 let rectDimens = function(v) { return (3.14 / 2) * scales.radius(v); };
 
-function render(data) {
-  // convert
-  data.data.forEach(function(e, i) {
-    e.name = e.id;
-    e = convert(e);
-  });
-
-  callback(null, visData.data); 
-}
-
-function horToggle() {
-  hor = !hor;
-  drawFromRoot(currentRoot);
-}
-
-function convert(row) {
-  row.id = row.name;
-  let parts = row.name.split(".")
-  row.name = parts[parts.length - 1];
-  return row;
-}
-
-function callback(error, data) {
+function main(error, data) {
     if (error) {
         console.warn(file, error);
         return;
@@ -426,3 +440,5 @@ function drawTraditionalStraight(id, root, parent) {
   drawNodes(g, nodes, true, true, root, parent);
   drawLegend(leg, root);
 }
+
+/********************************************************/
