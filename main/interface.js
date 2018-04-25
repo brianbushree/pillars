@@ -89,6 +89,15 @@ ipcMain.on('jar_prompt', function (event) {
   event.sender.send('jar_res', get_jar());
 });
 
+ipcMain.on('root_prompt', function (event) {
+  event.sender.send('root_res', get_dir());
+});
+
+function get_dir() {
+    return dialog.showOpenDialog({
+      properties: [ 'openDirectory' ] });
+}
+
 function get_dirs() {
     return dialog.showOpenDialog({
       properties: [ 'openDirectory', 'multiSelections' ] });
@@ -119,7 +128,7 @@ function load_project(event, data, save) {
   }
 
   // make project
-  project = new Project(data.class_dirs, data.src_dirs, data.classpath, data.jar, data.runargs, data.packages, null, null);
+  project = new Project(data.class_dirs, data.src_dirs, data.classpath, data.jar, data.runargs, data.packages, data.root_dir, null, null);
 
   // send stringified project
   worker.send({ type: 'proj_data', proj: data, appPath: app.getAppPath() });

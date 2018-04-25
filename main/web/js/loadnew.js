@@ -10,6 +10,7 @@ let project = {
 	'src_dirs' : [],
 	'classpath': [],
 	'jar': null,
+	'root_dir': null,
 	'runargs': [],
 	'packages': []
 };
@@ -51,6 +52,10 @@ function classpath_prompt() {
 
 function jar_prompt() {
 	ipcRenderer.send('jar_prompt');
+}
+
+function root_prompt() {
+	ipcRenderer.send('root_prompt');
 }
 
 function runarg_enter() {
@@ -103,6 +108,16 @@ ipcRenderer.on('jar_res', function(e, data) {
 	project.jar = data[0];
 });
 
+ipcRenderer.on('root_res', function(e, data) {
+	if (!data) { return }
+	if (project.root_dir != null) {
+		alert('Only one jar can be selected.');
+		return;
+	}
+	add_files_to_elem('proj-root', data, 0);
+	project.root_dir = data[0];
+});
+
 function add_files_to_elem(parentID, data, offset) {
 
 	let elem;
@@ -153,7 +168,12 @@ function remove_file_from_list(child, index) {
 		arr = project.packages;
 	} else if (parent.getAttribute('id') == 'proj-runargs') {
 		arr = project.packages;
+	} else if (parent.getAttribute('id') == 'proj-root') {
+		project.root_dir = null;
+		remove_all_from_node(parent);
+		return;
 	}
+
 
 	cpy = arr.slice();
 	cpy.splice(index, 1);
@@ -173,5 +193,4 @@ function remove_file_from_list(child, index) {
 	} else if (parent.getAttribute('id') == 'proj-runargs') {
 		project.runargs = cpy;
 	}
-
 }

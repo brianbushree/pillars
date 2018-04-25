@@ -8,6 +8,7 @@
 const javapParser = require('./javap-parser/Javap-Parser.js');
 const { Profiler } = require('./profiler/Profiler.js');
 const srcFinder = require('./SourceFinder.js');
+const visBuilder = require('./vis-builder/Vis-Builder.js');
 
 exports.Project = class Project {
 
@@ -21,7 +22,7 @@ exports.Project = class Project {
      * @param {Array<string>} runargs  runtime arguements
      * @param {Array<string>} packages  packages to trace
      */
-    constructor(class_dirs, src_dirs, classpath, jar, runargs, packages, class_data, exec_data) {
+    constructor(class_dirs, src_dirs, classpath, jar, runargs, packages, root_dir, class_data, exec_data) {
 
         this.class_dirs = class_dirs;
         this.src_dirs = src_dirs;
@@ -29,6 +30,7 @@ exports.Project = class Project {
         this.jar = jar;
         this.runargs = runargs;
         this.packages = packages;
+        this.root_dir = root_dir;
 
         this.class_data = class_data;
         this.exec_data = exec_data;
@@ -62,7 +64,7 @@ exports.Project = class Project {
 
                   proj.exec_data = exec_data;
 
-                  // TODO decide if stopping before building vis_data is necessary
+                  proj.visData = visBuilder.buildVisData(proj);
 
                   callback(err);
 

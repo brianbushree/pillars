@@ -21,8 +21,6 @@ function exec(data) {
 			      console.log(err);
 			    }
 
-			   	data.proj.visData = visBuilder.buildVisData(data.proj);
-
 			   	process.send({ type: 'proj_data', proj: data.proj });
 			});
 			break;

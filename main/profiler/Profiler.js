@@ -28,7 +28,7 @@ exports.Profiler = class Profiler {
   runProfiler(project, callback) {
 
     const agentJar = this.appPath + '/main/profiler/agent-0.1-SNAPSHOT.jar';
-    this._execProgram(agentJar, project.jar, project.packages, project.runargs, callback);
+    this._execProgram(agentJar, project.jar, project.packages, project.runargs, project.root_dir, callback);
 
   }
 
@@ -41,14 +41,15 @@ exports.Profiler = class Profiler {
    * @param {Array<string>} appArgs  program arguements
    * @param {Function} callback(err, data)  callback function
    */
-  _execProgram(agentJar, appJar, agentArgs, appArgs, callback) {
+  _execProgram(agentJar, appJar, agentArgs, appArgs, rootDir, callback) {
 
-    // 'cd' into $app$/profiler
+    // 'cd' into root_dir
     let cwd = process.cwd();
-    process.chdir(this.appPath + '/main/profiler');
+    process.chdir(rootDir);
 
     // spawn child thread
-    let child = cp.spawn('java', ['-javaagent:' + agentJar + '=' + agentArgs.join(','), '-jar', appJar].concat(appArgs));
+    const logOut = this.appPath + '/main/profiler';
+    let child = cp.spawn('java', ['-javaagent:' + agentJar + '=' + logOut + '###' + agentArgs.join(','), '-jar', appJar].concat(appArgs));
 
     // enforce utf8
     child.stdout.setEncoding('utf8');
@@ -59,7 +60,6 @@ exports.Profiler = class Profiler {
     child.stdout.on('data', function(data) {
       process.send({ type: 'exec_out', data: data });
     });
-
     child.stderr.on('data', function(data) {
       process.send({ type: 'exec_out', data: data });
     });
