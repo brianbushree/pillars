@@ -8,10 +8,11 @@
   },
   "repository": "https://github.com/brianbushree/pillars",
   "devDependencies": {
-    "electron": "^1.8.2"
+    "electron": "^3.0.6"
   },
   "dependencies": {
     "ipc": "0.0.1",
-    "node-syntaxhighlighter": "^0.8.1"
+    "node-syntaxhighlighter": "^0.8.1",
+    "protobufjs": "^6.8.8"
   }
 }

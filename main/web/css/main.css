@@ -1,69 +1,11 @@
-div#sidebar {
-  font-family: 'Source Sans Pro', sans-serif;
-  margin-top: 25px;
-  display: inline-block;
-  vertical-align: top;
-  width: 380px;
-  height: 740px;
+body {
+	background-color: white;
 }
 
-div#code-cont {
-  display: inline-block;
-  vertical-align: top;
-  overflow: scroll;
-  height: 95%;
-  width: 98%;
-}
-
-div#code-block {
-  display: inline-block;
-  vertical-align: top;
-}
-
-.syntaxhighlighter {
-  font-size: .65em !important;
-}
-
-#code-label {
-}
-
-div#vis {
-  display: inline-block;
-}
-
-path.link {
-  stroke:#ccc;
-}
-
-svg {
-  font-family: 'Source Sans Pro', sans-serif;
-  font-weight: 300;
-}
-
-b {
-  font-weight: 900;
-}
-
-g.node-g text {
-  font-size: .8em;
-  fill: #676767;
-}
-
-.node {
-  stroke: silver;
-  stroke-width: 1px;
-}
-
-.link {
-  fill: none;
-  stroke: silver;
-  stroke-width: 1px;
+.method {
+	text-indent: 35px;
 }
 
 .selected {
-  stroke: red !important;
-}
-
-g.label text {
-	font-size: .7em;
+	color: red;
 }

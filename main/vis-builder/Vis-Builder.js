@@ -6,6 +6,7 @@
  *      to the visualization. 
  */
 const fs = require('fs');
+const methodCleaner = require('./MethodCleaner.js')
 
 /**
  * Given a built project, build & return visualization data.
@@ -13,6 +14,8 @@ const fs = require('fs');
  * @param {Object} project  built project
  */
 exports.buildVisData = function buildVisData(project) {
+
+  methodCleaner.cleanMethodSignatures(project.exec_data);
 
   let vis_data = {};
   vis_data['mthd_map'] = buildDataMap(project);
@@ -59,15 +62,15 @@ function buildDataMap(project) {
     });
   });
 
-  // add all callees
-  addToMap(mthd_map, project.exec_data[0]);
+  // add all calls
+  addToMap(mthd_map, project.exec_data);
 
   return mthd_map;
 
 }
 
 /**
- * Check all callees for missing entry
+ * Check all calls for missing entry
  *  in mthd_map. Add default if necessary.
  *
  * @param {Object} mthd_map  Map<sig, data> to add to
@@ -75,15 +78,15 @@ function buildDataMap(project) {
  */
 function addToMap(mthd_map, elem) {
 
-  if (!mthd_map[elem.sig]) {
+  if (!mthd_map[elem.signature]) {
 
-    mthd_map[elem.sig] = {};
-    let t = elem.sig.split('(')[0];
-    mthd_map[elem.sig].parent = t.substring(0, t.lastIndexOf('.'));
+    mthd_map[elem.signature] = {};
+    let t = elem.signature.split('(')[0];
+    mthd_map[elem.signature].parent = t.substring(0, t.lastIndexOf('.'));
 
   }
 
-  elem.callees.forEach(function(e, i) {
+  elem.calls.forEach(function(e, i) {
     addToMap(mthd_map, e);
   });
 
@@ -100,8 +103,7 @@ function buildHierarchyData(project) {
   let data = [];
   let node = 0;
 
-
-  node = buildMethod(data, project.exec_data[0], node, '', true, project.exec_data[0].call);
+  node = buildMethod(data, project.exec_data, node, '', true, project.exec_data.caller);
   return data;
 
 }
@@ -123,7 +125,8 @@ function buildHierarchyData(project) {
 function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
 
   prefix += ((node != 0) ? '.' : '') + (node++);
-  node_data.push({ 'id': prefix, 'sig': elem.sig, 'time': elem.time, 'new_thread': new_thread , 'call': caller_info, 'agg': elem.agg });
+  node_data.push({ 'id': prefix, 'sig': elem.signature, 'time': +elem.duration.toString(),
+                 'new_thread': new_thread , 'call': { 'line' : ((elem.caller != null) ? elem.caller.linenum : null) }, 'agg': elem.agg });
 
 
   let out = [];
@@ -132,9 +135,9 @@ function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
   let aggGroup = 0;
   let agglist;
 
-  elem.callees.forEach(function(call, i) {
+  elem.calls.forEach(function(call, i) {
 
-    if (call.sig == 'Thread.start()') {
+    if (call.type == 1) {  // 1 == MethodCallType.THREAD_START
 
       // We want to see all created threads
       out.push(call);
@@ -142,7 +145,7 @@ function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
     } else {
 
       // avoid looped calls!
-      if (!includesSig(out, call.sig)) {
+      if (!includesSig(out, call.signature)) {
 
         if (temp.length != 0) {
           temp.forEach(function(c) {
@@ -181,9 +184,9 @@ function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
   });
 
   out.forEach(function (call, i) {
-    if (call.sig == 'Thread.start()') {
+    if (call.type == 1) {  // 1 == MethodCallType.THREAD_START
       // We want to see all created threads
-      node = buildMethod(node_data, call.callees[0], node, prefix, true, call.call);
+      node = buildMethod(node_data, call.calls[0], node, prefix, true, call.call);
     } else {
 
       // aggregate into call.time
@@ -211,7 +214,7 @@ function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
  */
 function includesSig(arr, sig) {
   for (let i = 0; i < arr.length; i++) {
-    if (arr[i].sig == sig) {
+    if (arr[i].signature == sig) {
       return true;
     }
   }
@@ -261,8 +264,8 @@ function reursionCheck(trace, elem) {
 
     trace.push(elem.sig);
 
-    for (let i = 0; i < elem.callees.length; i++) {
-      if (reursionCheck(trace.slice(), elem.callees[i])) {
+    for (let i = 0; i < elem.calls.length; i++) {
+      if (reursionCheck(trace.slice(), elem.calls[i])) {
         return true;
       }
     }
