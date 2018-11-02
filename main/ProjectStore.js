@@ -28,7 +28,9 @@ exports.ProjectStore = class ProjectStore {
 	 * @param {Object} project  project to store
 	 */
 	storeSync(project) {
-		fs.writeFileSync(this.store + '/' + project.name + '.project', JSON.stringify(project));
+		let path = this.store + '/' + project.name + '.project';
+		this._ensureDirectoryExists(path)
+		fs.writeFileSync(path, JSON.stringify(project));
 	}
 
 	/**
@@ -103,5 +105,12 @@ exports.ProjectStore = class ProjectStore {
 
 	}
 
+	_ensureDirectoryExists(filePath) {
+		var dir = path.dirname(filePath);
+		if (!fs.existsSync(dir)) {
+			this._ensureDirectoryExists(dir);
+			fs.mkdirSync(dir);
+		}
+	}
 
 }
