@@ -103,106 +103,105 @@ function buildHierarchyData(project) {
   let data = [];
   let node = 0;
 
-  node = buildMethod(data, project.exec_data, node, '', true, project.exec_data.caller);
+  node = buildMethod(data, project.exec_data, node, '');
   return data;
 
 }
-
-// TODO add recursion check
 
 /**
  * Given a built project, return execution data
  *  while avoiding (and aggregating) repeated sets
  *  of method calls (mostly loops).
  *
- * @param {Array<Object>} node_data  list of nodes to add to
+ * @param {Array<Object>} node_list  list of nodes to add to
  * @param {Object} elem  method call Object
  * @param {number} node  unique node value
  * @param {string} prefix  this node's parent
  * @param {boolean} new_thread  true if this method was called by Thread.start()
  * @param {Object} caller_info  Object containing file & line of caller
+ * @return {Object} built method call Object
  */
-function buildMethod(node_data, elem, node, prefix, new_thread, caller_info) {
-
+function buildMethod(node_list, elem, node, prefix) {
   prefix += ((node != 0) ? '.' : '') + (node++);
-  node_data.push({ 'id': prefix, 'sig': elem.signature, 'time': +elem.duration.toString(),
-                 'new_thread': new_thread , 'call': { 'line' : ((elem.caller != null) ? elem.caller.linenum : null) }, 'agg': elem.agg });
+  node_list.push({ 'id': prefix, 'sig': elem.signature,
+                 'time': ((elem.duration != undefined) ? +elem.duration : undefined ),
+                 'new_thread': elem.type == "THREAD_START",
+                 'agg': elem.agg,
+                 'call': {
+                    'line' : ((elem.caller != null) ? elem.caller.linenum : null)
+                  },
+                 'instructions': elem.instructions });
 
+  aggRepeatCalls(elem.calls).forEach(function (call, i) {
 
+    // sum durations
+    if (call.agg) {
+      let sum = 0;
+      call.agg.calls.forEach(function(t) {
+        sum += +t.duration;
+      });
+      call.duration = sum;
+    }
+    
+    node = buildMethod(node_list, call, node, prefix);
+
+  });
+  return node;
+}
+
+/**
+ * Aggregate repeated method calls into a single object.
+ * @param {Array<Object>} list of method calls
+ * @return aggreagated list of calls
+ */
+function aggRepeatCalls(calls) {
   let out = [];
-  let temp = [];
+  let check = [];
 
   let aggGroup = 0;
   let agglist;
 
-  elem.calls.forEach(function(call, i) {
+  let emptyCheckList = function() {
+    if (check.length != 0) {
+      check.forEach(function(c) {
+        out.push(c);
+      });
+      check.length = 0;
+    }
+  };
 
-    if (call.type == 1) {  // 1 == MethodCallType.THREAD_START
+  calls.forEach(function(call, i) {
+    if (call.type == "THREAD_START" || !includesSig(out, call.signature)) {
 
-      // We want to see all created threads
+      emptyCheckList();
       out.push(call);
 
     } else {
+      check.push(call);
 
-      // avoid looped calls!
-      if (!includesSig(out, call.signature)) {
+      if (arrayEquals(check, out.slice(out.length - check.length, out.length))) {
+        aggGroup++;
+        agglist = out.slice(out.length - check.length, out.length);
 
-        if (temp.length != 0) {
-          temp.forEach(function(c) {
-            out.push(c);
-          });
-          temp.length = 0;
-        }
+        let copy = function(o) {
+          return JSON.parse(JSON.stringify(o));
+        };
 
-        out.push(call);
+        agglist.forEach(function(e, i) {
 
-      } else {
+          if (e.agg == null) {
+            e.agg = { 'group': aggGroup, calls: [ copy(e) ]};
+          }
+          e.agg.calls.push(copy(check[i]));
 
-        temp.push(call);
-
-        if (arrayEquals(temp, out.slice(out.length - temp.length, out.length))) {
-
-          aggGroup++;
-          agglist = out.slice(out.length - temp.length, out.length);
-
-          agglist.forEach(function(e, i) {
-
-            if (e.agg == null) {
-              e.agg = { 'group': aggGroup, times: [ e.time ]};
-            }
-            e.agg.times.push(temp[i].time);
-
-          });
-
-          temp.length = 0;
-
-        }
-
-      }
-    }
-
-  });
-
-  out.forEach(function (call, i) {
-    if (call.type == 1) {  // 1 == MethodCallType.THREAD_START
-      // We want to see all created threads
-      node = buildMethod(node_data, call.calls[0], node, prefix, true, call.call);
-    } else {
-
-      // aggregate into call.time
-      if (call.agg) {
-        let sum = 0;
-        call.agg.times.forEach(function(t) {
-          sum += t;
         });
-        call.time = sum;
+
+        check.length = 0;
       }
-    
-      node = buildMethod(node_data, call, node, prefix, false, call.call);
     }
   });
-
-  return node;
+  emptyCheckList();
+  return out;
 }
 
 /**
@@ -231,7 +230,7 @@ function includesSig(arr, sig) {
 function arrayEquals(a, b) {
   if (a.length == b.length) {
     for (let i = 0; i < a.length; i++) {
-      if (a[i].sig != b[i].sig) {
+      if (a[i].signature != b[i].signature) {
         return false;
       }
     }
@@ -239,38 +238,4 @@ function arrayEquals(a, b) {
   } else {
     return false;
   }
-}
-
-/**
- * Test if a given method directly or indirectly 
- *  calls itself. (Except 'Thread.start()')
- *
- * @param {Array<string>} trace  list of all method calls
- * @param {Object} elem  method call Object
- * @return {boolean} true if recursive, false otherwise
- */
-function reursionCheck(trace, elem) {
-
-  // We want to see all created threads
-  if (elem.sig == 'Thread.start()') {
-    return false;
-  } 
-
-  if (trace.includes(elem.sig)) {
-
-    return true;
-
-  } else {
-
-    trace.push(elem.sig);
-
-    for (let i = 0; i < elem.calls.length; i++) {
-      if (reursionCheck(trace.slice(), elem.calls[i])) {
-        return true;
-      }
-    }
-
-  }
-
-  return false;
 }

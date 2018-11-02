@@ -4,6 +4,11 @@ function cleanMethodSignatures(method) {
   method.calls.forEach(function(call) {
     cleanMethodSignatures(call);
   });
+  method.instructions
+  .filter(function(instr) { return instr.type == "METHOD_CALL"; })
+  .forEach(function(instr) {
+    instr.callSignature = cleanMethodSig(instr.callSignature);
+  });
 }
 
 function replaceAll(str, find, replace) {

@@ -6,7 +6,7 @@
  */
 const cp = require('child_process');
 const fs = require('fs');
-const rootProto = require("./method_call.js")
+const MethodCallProto = require("./method_call.js").agent.MethodCall;
 
 exports.Profiler = class Profiler {
 
@@ -98,11 +98,15 @@ exports.Profiler = class Profiler {
     const log = this.appPath + '/main/profiler/out/thread_' + thread + '.txt';
     
     // decode/load
-    let threadData = rootProto.agent.MethodCall.decode(fs.readFileSync(log));
+    let threadData = MethodCallProto.toObject(
+      MethodCallProto.decode(fs.readFileSync(log)),
+      { arrays: true, enums: String, longs: String, objects: true, defaults: true }
+    );
+    threadData.type = "THREAD_START";
 
     // compress threads & fix call.depth
     threadData.calls.forEach(function(call, index) {
-      if (call.type == 1) {   // call.type == MethodCallType.THREAD_START
+      if (call.type == "THREAD_START") {
         let addToNodes = function(mcall, add) {
           mcall.calls.forEach(function(c, i) {
             c.depth += call.depth;
@@ -113,10 +117,13 @@ exports.Profiler = class Profiler {
         }
         let nestedThread = this._parseThread(call.newThreadId)
         addToNodes(nestedThread, call.depth);
-        call.calls.push(nestedThread);
+
+        nestedThread.type = call.type;
+        nestedThread.caller = call.caller;
+        threadData.calls[index] = nestedThread;
+
       }
     }.bind(this));
-
     return threadData;
   }
 

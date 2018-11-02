@@ -223,7 +223,7 @@ function drawNodes(g, nodes, depth, raise, root) {
 function drawText(sel) {
   sel
     .attr("class", "agg-text")
-    .text(function(d) { return ((d.data.agg) ? d.data.agg.times.length : ""); })
+    .text(function(d) { return ((d.data.agg) ? d.data.agg.calls.length : ""); })
     .attr("x", function(d) {
       let pos = (!hor) ? x(d) : y(d);
       let offset;
