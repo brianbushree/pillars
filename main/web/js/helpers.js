@@ -2,14 +2,14 @@
  * Convert from degrees (e.g. 360) to radians (e.g. 2*Pi)
  */
 function toRadians(degrees) {
-    return degrees * Math.PI / 180;
+  return degrees * Math.PI / 180;
 }
 
 /*
  * Convert from radians (e.g. 2*Pi) to degrees (e.g. 360)
  */
 function toDegrees(radians) {
-    return radians * 180 / Math.PI;
+  return radians * 180 / Math.PI;
 }
 
 /*
@@ -19,11 +19,11 @@ function toDegrees(radians) {
  * The angle provided should be in degrees, not radians!
  */
 function toCartesian(r, degrees) {
-    var theta = toRadians(degrees);
-    var x = r * Math.cos(theta);
-    var y = r * Math.sin(theta);
+  var theta = toRadians(degrees);
+  var x = r * Math.cos(theta);
+  var y = r * Math.sin(theta);
 
-    return {"x": x, "y": y};
+  return {"x": x, "y": y};
 }
 
 /*
@@ -33,15 +33,15 @@ function toCartesian(r, degrees) {
  * The angle returned will be in degrees, not radians!
  */
 function toPolar(x, y) {
-    var r = Math.sqrt(x * x + y * y);
-    var theta = Math.atan2(y, x);
+  var r = Math.sqrt(x * x + y * y);
+  var theta = Math.atan2(y, x);
 
-    return {"r": r, "theta": toDegrees(theta)};
+  return {"r": r, "theta": toDegrees(theta)};
 }
 
 /*
  * Returns translate text for the SVG transform attribute.
  */
 function translate(x, y) {
-    return "translate(" + String(x) + "," + String(y) + ")";
+  return "translate(" + String(x) + "," + String(y) + ")";
 }
