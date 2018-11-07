@@ -125,12 +125,14 @@ function buildMethod(node_list, elem, node, prefix) {
   prefix += ((node != 0) ? '.' : '') + (node++);
   node_list.push({ 'id': prefix, 'sig': elem.signature,
                  'time': ((elem.duration != undefined) ? +elem.duration : undefined ),
-                 'new_thread': elem.type == "THREAD_START",
+                 'newThread': elem.type == "THREAD_START",
                  'agg': elem.agg,
                  'call': {
                     'line' : ((elem.caller != null) ? elem.caller.linenum : null)
                   },
-                 'instructions': elem.instructions });
+                 'instructions': elem.instructions,
+                 'returnValue': elem.returnValue 
+                });
 
   aggRepeatCalls(elem.calls).forEach(function (call, i) {
 

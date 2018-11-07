@@ -184,7 +184,7 @@ function drawNodes(g, nodes, depth, raise, root) {
   oldGroups.each(function(d, j) {
     let node = d3.select(this);
     node.selectAll("circle,rect").remove();
-    if (!d.data.new_thread) {
+    if (!d.data.newThread) {
       node.append("circle");
     } else {
       node.append("rect");
@@ -198,7 +198,7 @@ function drawNodes(g, nodes, depth, raise, root) {
 
   newGroups.append(function(d) {
     let elem;
-    if (!d.data.new_thread) {
+    if (!d.data.newThread) {
       elem = "circle";
     } else {
       elem = "rect";
@@ -227,7 +227,7 @@ function drawText(sel) {
     .attr("x", function(d) {
       let pos = (!hor) ? x(d) : y(d);
       let offset;
-      if (!d.data.new_thread) {
+      if (!d.data.newThread) {
         offset = d3.select(this.parentNode).select("circle").attr("r");
       } else {
         offset = d3.select(this.parentNode).select("rect").attr("width");
@@ -237,7 +237,7 @@ function drawText(sel) {
     .attr("y", function(d) {
       let pos = (!hor) ? y(d) : x(d);
       let offset;
-      if (!d.data.new_thread) {
+      if (!d.data.newThread) {
         offset = d3.select(this.parentNode).select("circle").attr("r");
       } else {
         offset = d3.select(this.parentNode).select("rect").attr("width");
@@ -252,7 +252,7 @@ function drawNode(sel, g, raise) {
     .attr("sig", function(d) { return d.data.sig; })
     .attr("time", function(d) { return d.data.time; })
     .attr("class", function(d)
-      { return ((d.depth == 0) ? "root " : "") + "node" + ((d.data.new_thread) ? " newthread" : ""); })
+      { return ((d.depth == 0) ? "root " : "") + "node" + ((d.data.newThread) ? " newthread" : ""); })
     .style("fill", function(d) {
        let c;
        if (!visData.mthd_map[d.data.sig]) {
