@@ -1,0 +1,28 @@
+#instructions {
+  display: inline-block;
+  max-width: 800px;
+}
+
+div#sidebar {
+  font-family: 'Source Sans Pro', sans-serif;
+  display: inline-block;
+  vertical-align: top;
+  width: 380px;
+}
+  
+div#code-cont {
+  display: inline-block;
+  vertical-align: top;
+  overflow: scroll;
+  height: 95%;
+  width: 98%;
+}
+
+div#code-block {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.syntaxhighlighter {
+  font-size: .65em !important;
+}

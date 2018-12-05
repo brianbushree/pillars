@@ -5,9 +5,14 @@ function cleanMethodSignatures(method) {
     cleanMethodSignatures(call);
   });
   method.instructions
-  .filter(function(instr) { return instr.type == "METHOD_CALL"; })
+  .filter(function(instr) { return instr.type == 'METHOD_CALL'; })
   .forEach(function(instr) {
     instr.callSignature = cleanMethodSig(instr.callSignature);
+  });
+  method.instructions
+  .filter(function(instr) { return instr.type == 'READ' || instr.type == 'WRITE'; })
+  .forEach(function(instr) {
+    instr.variable.type = parseNextType(instr.variable.type, 0)[0];
   });
 }
 

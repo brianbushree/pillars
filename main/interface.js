@@ -166,8 +166,23 @@ ipcMain.on('exec_req', function (event, root) {
 /* vis.html                                         */
 /* -------------------------------------------------*/
 
+function loadTree() {
+  main.loadWindowResize("web/vis.html", 1200, 800);
+}
+
+ipcMain.on('load-tree', function(event) {
+  loadTree();
+});
+
 ipcMain.on('data-req', function (event) {
   event.sender.send('data-res', project.visData);
+});
+
+ipcMain.on('node-select', function (event, nodeId) {
+  main.loadWindowWithParams(
+    'web/instructions.html',
+    { 'id' : nodeId }
+  );
 });
 
 
@@ -201,7 +216,7 @@ worker.on('message', function (data) {
       project = new Project(data.proj.class_dirs, data.proj.src_dirs, data.proj.classpath, data.proj.jar, data.proj.runargs, data.proj.packages, data.proj.class_data, data.proj.exec_data);
       project.visData = data.proj.visData;
 
-      main.loadWindowResize("web/vis.html", 1200, 800);
+      loadTree();
       break;
 
     default:

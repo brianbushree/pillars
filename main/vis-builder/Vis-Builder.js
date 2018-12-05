@@ -131,6 +131,7 @@ function buildMethod(node_list, elem, node, prefix) {
                     'line' : ((elem.caller != null) ? elem.caller.linenum : null)
                   },
                  'instructions': elem.instructions,
+                 'params': elem.paramValues,
                  'returnValue': elem.returnValue 
                 });
 

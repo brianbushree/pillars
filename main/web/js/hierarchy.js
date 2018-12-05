@@ -156,7 +156,7 @@ function highlightLineNumber(lineNum) {
 }
 
 function unhighlightLines() {
-  let line = d3.selectAll("div.line");
+  let line = d3.selectAll("#sidebar div.line");
   line.classed("highlighted", false);
 }
 
@@ -279,22 +279,23 @@ function drawNode(sel, g, raise) {
       d3.select(this).classed("selected", false);
     })
     .on("click", function(d) {
-      g.select("#tooltip").remove();
-      if (d.depth == 0) {
-        let parent = parents.pop();
-        if (parent != null) {
-          drawFromRoot(parent);
-        }
-      } else {
-        let p = [];
-        let pd = d;
-        for (let i = 0; i < d.depth; i++) {
-          p.unshift(pd.parent.copy());
-          pd = pd.parent;
-        }
-        parents = parents.concat(p);
-        drawFromRoot(d);
-      }
+      // g.select("#tooltip").remove();
+      // if (d.depth == 0) {
+      //   let parent = parents.pop();
+      //   if (parent != null) {
+      //     drawFromRoot(parent);
+      //   }
+      // } else {
+      //   let p = [];
+      //   let pd = d;
+      //   for (let i = 0; i < d.depth; i++) {
+      //     p.unshift(pd.parent.copy());
+      //     pd = pd.parent;
+      //   }
+      //   parents = parents.concat(p);
+      //   drawFromRoot(d);
+      // }
+      ipcRenderer.send('node-select', d.data.id);
     });
 }
 

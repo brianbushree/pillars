@@ -10,6 +10,7 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
 const inter = require('./interface.js')
+const querystring = require('querystring');
 
 let mainWindow;
 
@@ -66,6 +67,22 @@ function loadWindow(file) {
   }));
 }
 exports.loadWindow = loadWindow;
+
+/**
+ * Redirect main window with query params.
+ * 
+ * @param {string} file    path to file
+ * @param {object} params  query params
+ */
+function loadWindowWithParams(file, params) {
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, file),
+    protocol: 'file:',
+    slashes: true,
+    search: querystring.stringify(params)
+  }));
+}
+exports.loadWindowWithParams = loadWindowWithParams;
 
 /**
  * Redirect main window & resize.

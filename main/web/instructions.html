@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Java Project Visualization</title>
+
+    <link rel="stylesheet" type="text/css" href="sh/css/shCoreEclipse.css">
+    <link rel="stylesheet" type="text/css" href="sh/css/shThemeEclipse.css">
+    <link rel="stylesheet" href="css/instructions.css" type="text/css">
+  </head>
+
+  <body>
+
+    <button onclick="backToTree()">back</button>
+    <div id="method"></div>
+
+    <div id="sidebar" style="height: 0px;">
+      <div id="code-label"></div>
+      <div id="code-cont">
+        <div id="code-block"></div>
+      </div>
+    </div>
+
+    <table id="instructions">
+      <tr><th>line</th><th>type<th>variable</th><th>signature / value</th></tr>
+    </table>
+
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script type="text/javascript" src="js/instructions.js"></script>
+
+  </body>
+</html>
